@@ -55,7 +55,7 @@ function addGroundPlane(scene, width, height) {
     // rotate and position the plane
     plane.rotation.x=-0.5*Math.PI;
     plane.position.x=0;
-    plane.position.y=-60;
+    plane.position.y=-59.9;
     plane.position.z=0;
 
     scene.add(plane);
@@ -66,7 +66,7 @@ function addGroundPlane(scene, width, height) {
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
     plane.rotation.x=-0.5*Math.PI;
     plane.position.x=0;
-    plane.position.y=-61;
+    plane.position.y=-60;
     plane.position.z=0;
     //Give it a name
     plane.name = 'ground';
@@ -101,9 +101,23 @@ FootyApp.prototype.reset = function() {
 FootyApp.prototype.generateData = function() {
     //For now get required team and write out to file
     var teamData = [];
+    var pos = [8, 3, 1, 1, 4, 3, 5, 6, 5, 4,
+               4, 4, 6, 6, 5, 5, 6, 7, 5, 7,
+               7, 5, 5, 5, 5, 5, 5, 5, 5, 5,
+               5, 5, 5, 5, 5, 6, 7, 7, 7, 7,
+               10, 11, 9, 7, 11, 11];
+
+    var points = [3, 6, 9, 10, 10, 13, 14, 15, 18, 19,
+                  22, 23, 23, 23, 26, 27, 27, 28, 31, 32,
+                  33, 36, 39, 40, 41, 44, 47, 50, 51, 54,
+                  55, 55, 55, 55, 56, 57, 57, 57, 58, 58,
+                  59, 59, 62, 65, 65, 65];
+
     for(var i=0; i<this.data.length; ++i) {
         var item = this.data[i];
         if(item["HomeTeam"] == "Nott'm Forest" || item["AwayTeam"] == "Nott'm Forest") {
+            item["Position"] = pos[i];
+            item["Points"] = points[i];
             teamData.push(item);
         }
     }
@@ -121,45 +135,166 @@ FootyApp.prototype.generateData = function() {
 };
 */
 
-FootyApp.prototype.generateData = function() {
-    //Generate bars for each parameter
-    var barGeometry = new THREE.BoxGeometry(2, 2, 2);
+FootyApp.prototype.renderAttribute = function(attribute, row) {
+    //Render given attribute for dataset
     var barScale = new THREE.Vector3(1, 1, 1);
-    var barMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
-    var pos = new THREE.Vector3(START_X, START_Y, START_Z);
+    var barMaterial;
+    var pos = new THREE.Vector3(START_X + row, START_Y, START_Z);
     var incZ = 3;
 
-    for(var i=0; i<this.data.length; ++i) {
-        var item = this.data[i];
-        switch(item["FTR"]) {
-            case 'H':
+    switch (attribute) {
+        case 'result':
+            var winMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
+            var drawMaterial = new THREE.MeshPhongMaterial({color: 0xFF4918});
+            var loseMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
+
+            for(var i=0; i<this.data.length; ++i) {
+                barMaterial = loseMaterial;
+                barScale.set(1, 1, 1);
+                var item = this.data[i];
+                switch(item["FTR"]) {
+                    case 'H':
+                        if(item['HomeTeam'] == "Nott'm Forest") {
+                            barMaterial = winMaterial;
+                            barScale.set(1, 3, 1);
+                        }
+                        break;
+
+                    case 'D':
+                        barMaterial = drawMaterial;
+                        barScale.set(1, 2, 1);
+                        break;
+
+                    case 'A':
+                        if(item['AwayTeam'] == "Nott'm Forest") {
+                            barMaterial = winMaterial;
+                            barScale.set(1, 3, 1);
+                        }
+                        break;
+                }
+
+                //Create bar
+                var bar = this.renderItem('box', barMaterial, pos, barScale);
+                this.scene.add(bar);
+                pos.z += incZ;
+            }
+            break;
+
+        case 'points':
+            var pointsMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
+            for(var i=0; i<this.data.length; ++i) {
+                barMaterial = pointsMaterial;
+                var item = this.data[i];
+                var points = item['Points'];
+                barScale.set(1, points, 1);
+
+                //Create bar
+                var bar = this.renderItem('box', barMaterial, pos, barScale);
+                this.scene.add(bar);
+                pos.z += incZ;
+            }
+            break;
+
+        case 'position':
+            var posMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff});
+            for(var i=0; i<this.data.length; ++i) {
+                barMaterial = posMaterial;
+                var item = this.data[i];
+                var leaguePos = item['Position'];
+                //Invert as lower is better
+                leaguePos = Math.abs(leaguePos-24);
+                barScale.set(1, leaguePos, 1);
+
+                //Create bar
+                var bar = this.renderItem('box', barMaterial, pos, barScale);
+                this.scene.add(bar);
+                pos.z += incZ;
+            }
+            break;
+
+        case 'scored':
+            var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFF196E});
+            for(var i=0; i<this.data.length; ++i) {
+                barMaterial = goalMaterial;
+                var item = this.data[i];
+                var goals;
                 if(item['HomeTeam'] == "Nott'm Forest") {
-                    barMaterial.color = 0x00ff00;
-                    barScale.set(1, 3, 1);
+                    goals = item['FTHG'];
+                } else {
+                    goals = item['FTAG'];
                 }
-                break;
-
-            case 'D':
-                barMaterial.color = 0xFF985C;
-                barScale.set(1, 2, 1);
-                break;
-
-            case 'A':
-                if(item['AwayTeam'] == "Nott'm Forest") {
-                    barMaterial.color = 0x00ff00;
-                    barScale.set(1, 3, 1);
+                if(goals == 0) {
+                    pos.z += incZ;
+                    continue;
                 }
-                break;
+                barScale.set(1, goals, 1);
+
+                //Create bar
+                var bar = this.renderItem('box', barMaterial, pos, barScale);
+                this.scene.add(bar);
+                pos.z += incZ;
+            }
+            break;
+
+        case 'conceeded':
+            var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFFF725});
+            for(var i=0; i<this.data.length; ++i) {
+                barMaterial = goalMaterial;
+                var item = this.data[i];
+                var goals;
+                if(item['HomeTeam'] == "Nott'm Forest") {
+                    goals = item['FTAG'];
+                } else {
+                    goals = item['FTHG'];
+                }
+                if(goals == 0) {
+                    pos.z += incZ;
+                    continue;
+                }
+                barScale.set(1, goals, 1);
+
+                //Create bar
+                var bar = this.renderItem('box', barMaterial, pos, barScale);
+                this.scene.add(bar);
+                pos.z += incZ;
+            }
+            break;
+
+    }
+};
+
+FootyApp.prototype.renderItem = function(shape, material, pos, scale) {
+    //Render given data item
+    var itemGeometry;
+
+    switch (shape) {
+        case 'box':
+            itemGeometry = new THREE.BoxGeometry(2, 2, 2);
+            break;
+
+        case 'cylinder':
+            itemGeometry = new THREE.CylinderGeometry(1, 1, 2);
+            break;
+    }
+
+    var item = new THREE.Mesh(itemGeometry, material);
+    item.scale.y = scale.y;
+    item.position.x = pos.x;
+    item.position.y = pos.y;
+    item.position.z = pos.z;
+
+    return item;
+};
+
+FootyApp.prototype.generateData = function() {
+    //Render data for each enabled attribute
+    var attributes = {'points' : true, 'position' : true, 'conceeded' : true, 'scored' : true, 'result' : true};
+    var row = 0;
+    for(var attrib in attributes) {
+        if(attributes[attrib]) {
+            this.renderAttribute(attrib, row);
+            row += 5;
         }
-
-        //Create bar
-        var bar = new THREE.Mesh(barGeometry, barMaterial);
-        bar.scale.y = barScale.y;
-        bar.position.x = pos.x;
-        bar.position.y = pos.y;
-        bar.position.z = pos.z;
-        this.scene.add(bar);
-        pos.z += incZ;
     }
 };
 

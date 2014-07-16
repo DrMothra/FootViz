@@ -20,12 +20,18 @@ FootyApp.prototype.init = function(container) {
     this.guiControls = null;
     this.dataFile = null;
     this.filename = '';
+    this.objectsRendered = 0;
 };
 
 FootyApp.prototype.update = function() {
     //Perform any updates
     var clicked = this.mouse.clicked;
 
+    /*
+    if(this.updateRequired) {
+        this.reDraw();
+    }
+    */
     BaseApp.prototype.update.call(this);
 };
 
@@ -40,7 +46,17 @@ FootyApp.prototype.createScene = function() {
 };
 
 FootyApp.prototype.clearScene = function() {
+    //Clear all data
+    for(var i=0; i<this.attributeGroups.length; ++i) {
+        this.scene.remove(this.attributeGroups[i]);
+    }
+};
 
+FootyApp.prototype.reDraw = function() {
+    //Remove generated data and redraw
+    this.clearScene();
+
+    this.generateData();
 };
 
 function addGroundPlane(scene, width, height) {
@@ -77,6 +93,171 @@ function addGroundPlane(scene, width, height) {
 
 FootyApp.prototype.createGUI = function() {
     //Create GUI - use dat.GUI for now
+    this.guiControls = new function() {
+        this.filename = '';
+        this.ShowLabels = false;
+
+        //Colours
+        this.Points = "#00ff00";
+        this.Position = "#0000ff";
+        this.Conceeded = "#fff725";
+        this.Scored = "#ff196e";
+        this.Ground = '#16283c';
+        this.Background = '#5c5f64';
+        this.AttributeScale = 1;
+        this.Attribute = 'points';
+
+        //Categories
+        this.ShowPoints = true;
+        this.ShowPosition = true;
+        this.ShowConceeded = true;
+        this.ShowScored = true;
+        this.ShowResults = true;
+    };
+
+    //Create GUI
+    var gui = new dat.GUI();
+    var _this = this;
+    //Create two folders - Appearance and Data
+    gui.add(this.guiControls, 'filename', this.filename).listen();
+    this.guiAppear = gui.addFolder("Appearance");
+
+    this.guiAppear.addColor(this.guiControls, 'Ground').onChange(function(value) {
+        _this.groundColourChanged(value);
+    });
+    this.guiAppear.addColor(this.guiControls, 'Background').onChange(function(value) {
+        _this.renderer.setClearColor(value, 1.0);
+    });
+    this.guiData = gui.addFolder("Data");
+
+};
+
+FootyApp.prototype.generateGUIControls = function() {
+    //Generate GUI elements from data
+    this.guiControls.filename = this.filename;
+
+    var _this = this;
+    this.guiAppear.addColor(this.guiControls, 'Points').onChange(function(value) {
+        _this.onPointsChanged(value);
+    });
+    this.guiAppear.addColor(this.guiControls, 'Position').onChange(function(value) {
+        _this.onPositionChanged(value);
+    });
+    this.guiAppear.addColor(this.guiControls, 'Conceeded').onChange(function(value) {
+        _this.onConceededChanged(value);
+    });
+    this.guiAppear.addColor(this.guiControls, 'Scored').onChange(function(value) {
+        _this.onScoredChanged(value);
+    });
+
+    var attribScale = this.guiAppear.add(this.guiControls, 'AttributeScale', 0.25, 10).step(0.25);
+    attribScale.listen();
+    attribScale.onChange(function(value) {
+        _this.onAttributeScaleChanged(value);
+    });
+
+    this.guiAppear.add(this.guiControls, 'Attribute', ['points', 'position', 'conceeded', 'scored', 'results']);
+
+    this.guiData.add(this.guiControls, 'ShowPoints').onChange(function(value) {
+        _this.onShowGroup('points', value);
+    });
+    this.guiData.add(this.guiControls, 'ShowPosition').onChange(function(value) {
+        _this.onShowGroup('position', value);
+    });
+    this.guiData.add(this.guiControls, 'ShowConceeded').onChange(function(value) {
+        _this.onShowGroup('conceeded', value);
+    });
+    this.guiData.add(this.guiControls, 'ShowScored').onChange(function(value) {
+        _this.onShowGroup('scored', value);
+    });
+    this.guiData.add(this.guiControls, 'ShowResults').onChange(function(value) {
+        _this.onShowGroup('results', value);
+    });
+};
+
+FootyApp.prototype.groundColourChanged = function(value) {
+    var ground = this.scene.getObjectByName('ground');
+    if(ground) {
+        ground.material.color.setStyle(value);
+    }
+};
+
+FootyApp.prototype.onPointsChanged = function(value) {
+    //Alter colour for points values
+    if(this.guiControls.ShowPoints) {
+        //Get points group
+        var group = this.scene.getObjectByName('pointsGroup');
+        if(group) {
+            for(var child=0; child<group.children.length; ++child) {
+                group.children[child].material.color.setStyle(value);
+            }
+        }
+    }
+};
+
+FootyApp.prototype.onPositionChanged = function(value) {
+    //Alter colour for position values
+    if(this.guiControls.ShowPosition) {
+        //Get position group
+        var group = this.scene.getObjectByName('positionGroup');
+        if(group) {
+            for(var child=0; child<group.children.length; ++child) {
+                group.children[child].material.color.setStyle(value);
+            }
+        }
+    }
+};
+
+FootyApp.prototype.onConceededChanged = function(value) {
+    //Alter colour for conceeded values
+    if(this.guiControls.ShowConceeded) {
+        //Get conceeded group
+        var group = this.scene.getObjectByName('conceededGroup');
+        if(group) {
+            for(var child=0; child<group.children.length; ++child) {
+                group.children[child].material.color.setStyle(value);
+            }
+        }
+    }
+};
+
+FootyApp.prototype.onScoredChanged = function(value) {
+    //Alter colour for scored values
+    if(this.guiControls.ShowScored) {
+        //Get scored group
+        var group = this.scene.getObjectByName('scoredGroup');
+        if(group) {
+            for(var child=0; child<group.children.length; ++child) {
+                group.children[child].material.color.setStyle(value);
+            }
+        }
+    }
+};
+
+FootyApp.prototype.onAttributeScaleChanged = function(value) {
+    //Get associated group to scale
+    var group = this.scene.getObjectByName(this.guiControls.Attribute + 'Group');
+    if(group) {
+        //Scale group
+        group.scale.set(1, value, 1);
+        group.position.set(group.position.x, -START_Y * (value-1), group.position.z);
+
+        //DEBUG
+        console.log('Value =', value);
+        console.log('pos =', group.position);
+    }
+};
+
+FootyApp.prototype.onShowGroup = function(group, value) {
+    //Show relevant dataset
+    var group = this.scene.getObjectByName(group+'Group');
+    if(group) {
+        group.traverse(function(obj) {
+            if(obj instanceof THREE.Mesh) {
+                obj.visible = value;
+            }
+        });
+    }
 };
 
 FootyApp.prototype.reset = function() {
@@ -135,7 +316,7 @@ FootyApp.prototype.generateData = function() {
 };
 */
 
-FootyApp.prototype.renderAttribute = function(attribute, row) {
+FootyApp.prototype.renderAttribute = function(attribute, group, row) {
     //Render given attribute for dataset
     var barScale = new THREE.Vector3(1, 1, 1);
     var barMaterial;
@@ -143,10 +324,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
     var incZ = 3;
 
     switch (attribute) {
-        case 'result':
+        case 'results':
             var winMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
             var drawMaterial = new THREE.MeshPhongMaterial({color: 0xFF4918});
             var loseMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
+
+            //Create label
+            var labelPos = new THREE.Vector3(pos.x, pos.y + 3, pos.z -10);
+            var labelScale = new THREE.Vector3(3, 1, 1);
+            var labelColour = [255, 255, 255];
+            var label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = loseMaterial;
@@ -174,10 +362,15 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 }
 
                 //Create bar
-                var bar = this.renderItem('box', barMaterial, pos, barScale);
-                this.scene.add(bar);
+                pos.y = barScale.y + START_Y;
+                var bar = this.renderItem('box', 'results' + this.objectsRendered, barMaterial, pos, barScale);
+                group.add(bar);
                 pos.z += incZ;
             }
+            //Create label
+            labelPos = new THREE.Vector3(pos.x, pos.y-0.5, pos.z);
+            label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
             break;
 
         case 'points':
@@ -186,13 +379,20 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 barMaterial = pointsMaterial;
                 var item = this.data[i];
                 var points = item['Points'];
-                barScale.set(1, points, 1);
+                barScale.set(1, points/2, 1);
 
                 //Create bar
-                var bar = this.renderItem('box', barMaterial, pos, barScale);
-                this.scene.add(bar);
+                pos.y = barScale.y + START_Y;
+                var bar = this.renderItem('box', 'points' + this.objectsRendered, barMaterial, pos, barScale);
+                group.add(bar);
                 pos.z += incZ;
             }
+            //Create label
+            var labelPos = new THREE.Vector3(pos.x, pos.y - 0.5, pos.z);
+            var labelScale = new THREE.Vector3(3, 1, 1);
+            var labelColour = [255, 255, 255];
+            var label = createLabel('Points', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
             break;
 
         case 'position':
@@ -206,10 +406,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 barScale.set(1, leaguePos, 1);
 
                 //Create bar
-                var bar = this.renderItem('box', barMaterial, pos, barScale);
-                this.scene.add(bar);
+                pos.y = barScale.y + START_Y;
+                var bar = this.renderItem('box', 'position' + this.objectsRendered, barMaterial, pos, barScale);
+                group.add(bar);
                 pos.z += incZ;
             }
+            //Create label
+            var labelPos = new THREE.Vector3(pos.x, pos.y - 0.5, pos.z);
+            var labelScale = new THREE.Vector3(3, 1, 1);
+            var labelColour = [255, 255, 255];
+            var label = createLabel('Position', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
             break;
 
         case 'scored':
@@ -230,10 +437,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 barScale.set(1, goals, 1);
 
                 //Create bar
-                var bar = this.renderItem('box', barMaterial, pos, barScale);
-                this.scene.add(bar);
+                pos.y = barScale.y + START_Y;
+                var bar = this.renderItem('box', 'scored' + this.objectsRendered, barMaterial, pos, barScale);
+                group.add(bar);
                 pos.z += incZ;
             }
+            //Create label
+            var labelPos = new THREE.Vector3(pos.x, pos.y - 0.5, pos.z);
+            var labelScale = new THREE.Vector3(3, 1, 1);
+            var labelColour = [255, 255, 255];
+            var label = createLabel('Scored', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
             break;
 
         case 'conceeded':
@@ -254,16 +468,73 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 barScale.set(1, goals, 1);
 
                 //Create bar
-                var bar = this.renderItem('box', barMaterial, pos, barScale);
-                this.scene.add(bar);
+                pos.y = barScale.y + START_Y;
+                var bar = this.renderItem('box', 'conceeded' + this.objectsRendered, barMaterial, pos, barScale);
+                group.add(bar);
                 pos.z += incZ;
             }
+            //Create label
+            var labelPos = new THREE.Vector3(pos.x, pos.y - 0.5, pos.z);
+            var labelScale = new THREE.Vector3(3, 1, 1);
+            var labelColour = [255, 255, 255];
+            var label = createLabel('Conceeded', labelPos, labelScale, labelColour, 12, 1);
+            this.scene.add(label);
             break;
 
     }
 };
 
-FootyApp.prototype.renderItem = function(shape, material, pos, scale) {
+function createLabel(name, position, scale, colour, fontSize, opacity) {
+
+    var fontface = "Arial";
+    var spacing = 10;
+
+    var canvas = document.createElement('canvas');
+    var context = canvas.getContext('2d');
+    var metrics = context.measureText( name );
+    var textWidth = metrics.width;
+
+    canvas.width = textWidth + (spacing * 2);
+    canvas.width *= 2;
+    canvas.height = fontSize;
+    context.textAlign = "center";
+    context.textBaseline = "middle";
+
+    context.fillStyle = "rgba(255, 255, 255, 0.0)";
+    context.fillRect(0, 0, canvas.width, canvas.height);
+
+    var red = Math.round(colour[0]);
+    var green = Math.round(colour[1]);
+    var blue = Math.round(colour[2]);
+
+    context.fillStyle = "rgba(" + red + "," + green + "," + blue + "," + "1.0)";
+    context.font = fontSize + "px " + fontface;
+
+    context.fillText(name, canvas.width/2, canvas.height/2);
+
+    // canvas contents will be used for a texture
+    var texture = new THREE.Texture(canvas);
+    texture.needsUpdate = true;
+
+    //texture.needsUpdate = true;
+    var spriteMaterial = new THREE.SpriteMaterial({
+            //color: color,
+            transparent: false,
+            opacity: opacity,
+            useScreenCoordinates: false,
+            blending: THREE.AdditiveBlending,
+            map: texture}
+    );
+
+    var sprite = new THREE.Sprite(spriteMaterial);
+
+    sprite.scale.set(scale.x, scale.y, 1);
+    sprite.position.set(position.x, position.y, position.z);
+
+    return sprite;
+}
+
+FootyApp.prototype.renderItem = function(shape, name, material, pos, scale) {
     //Render given data item
     var itemGeometry;
 
@@ -278,6 +549,7 @@ FootyApp.prototype.renderItem = function(shape, material, pos, scale) {
     }
 
     var item = new THREE.Mesh(itemGeometry, material);
+    item.name = name;
     item.scale.y = scale.y;
     item.position.x = pos.x;
     item.position.y = pos.y;
@@ -288,13 +560,18 @@ FootyApp.prototype.renderItem = function(shape, material, pos, scale) {
 
 FootyApp.prototype.generateData = function() {
     //Render data for each enabled attribute
-    var attributes = {'points' : true, 'position' : true, 'conceeded' : true, 'scored' : true, 'result' : true};
+    var attributes = ['points', 'position', 'conceeded', 'scored', 'results'];
+    //Create group for each attribute
+    this.attributeGroups = [];
     var row = 0;
-    for(var attrib in attributes) {
-        if(attributes[attrib]) {
-            this.renderAttribute(attrib, row);
-            row += 5;
-        }
+    var group;
+    for(var i=0; i<attributes.length; ++i) {
+        group = new THREE.Object3D();
+        group.name = attributes[i] + 'Group';
+        this.attributeGroups.push(group);
+        this.renderAttribute(attributes[i], group, row);
+        this.scene.add(group);
+        row += 5;
     }
 };
 
@@ -318,7 +595,7 @@ FootyApp.prototype.parseFile = function() {
             return;
         }
         //File parsed OK - generate GUI controls and data
-        //self.generateGUIControls();
+        self.generateGUIControls();
         self.generateData();
         self.updateRequired = true;
     };

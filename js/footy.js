@@ -21,6 +21,11 @@ FootyApp.prototype.init = function(container) {
     this.dataFile = null;
     this.filename = '';
     this.objectsRendered = 0;
+    //Groups to render
+    this.attributes = ['points', 'position', 'conceeded', 'scored', 'results'];
+    //Rendering groups
+    this.attributeGroups = [];
+    this.labelGroups = [];
 };
 
 FootyApp.prototype.update = function() {
@@ -115,7 +120,7 @@ FootyApp.prototype.createGUI = function() {
         this.ShowResults = true;
 
         //Values
-        this.ShowValues = false;
+        this.ShowValues = true;
     };
 
     //Create GUI
@@ -160,7 +165,9 @@ FootyApp.prototype.generateGUIControls = function() {
     });
 
     this.guiAppear.add(this.guiControls, 'Attribute', ['points', 'position', 'conceeded', 'scored', 'results']);
-    this.guiAppear.add(this.guiControls, 'ShowValues');
+    this.guiAppear.add(this.guiControls, 'ShowValues').onChange(function(value) {
+        _this.onShowValues(value);
+    });
 
     this.guiData.add(this.guiControls, 'ShowPoints').onChange(function(value) {
         _this.onShowGroup('points', value);
@@ -246,23 +253,66 @@ FootyApp.prototype.onAttributeScaleChanged = function(value) {
         group.scale.set(1, value, 1);
         var height = -START_Y * (value-1);
         group.position.set(group.position.x, height, group.position.z);
+
         //Move labels accordingly
         var labelGroup = this.scene.getObjectByName(this.guiControls.Attribute + 'LabelGroup', true);
-        if(labelGroup) {
-            labelGroup.position.set(group.position.x, (value-1)*2, group.position.z);
+        if(!labelGroup) {
+            console.log('Group ', this.guiControls.Attribute, ' not found');
+            return;
+        }
+        for(var i=0; i<group.children.length; ++i) {
+            //Get top of object
+            var child = group.children[i];
+            var top = (child.scale.y * group.scale.y * 2) + START_Y;
+            labelGroup.children[i].position.y = top + 1;
         }
     }
 };
 
-FootyApp.prototype.onShowGroup = function(group, value) {
+FootyApp.prototype.onShowGroup = function(attribute, value) {
     //Show relevant dataset
-    var group = this.scene.getObjectByName(group+'Group');
+    var group = this.scene.getObjectByName(attribute+'Group');
     if(group) {
         group.traverse(function(obj) {
             if(obj instanceof THREE.Mesh || obj instanceof THREE.Sprite) {
                 obj.visible = value;
             }
         });
+        //Hide labels
+        var label = this.scene.getObjectByName(attribute + 'LabelFront');
+        if(label) {
+            label.visible = value;
+        }
+        label = this.scene.getObjectByName(attribute + 'LabelBack');
+        if(label) {
+            label.visible = value;
+        }
+        //Hide values
+        for(var i=0; i<this.labelGroups.length; ++i) {
+            if(this.labelGroups[i].name == attribute + 'LabelGroup') {
+                this.labelGroups[i].traverse(function(obj) {
+                    if(obj instanceof THREE.Sprite) {
+                        obj.visible = value;
+                    }
+                });
+                break;
+            }
+        }
+    }
+};
+
+FootyApp.prototype.onShowValues = function(value) {
+    //Show value labels above attributes
+    var group;
+    for(var i=0; i<this.labelGroups.length; ++i) {
+        group = this.scene.getObjectByName(this.attributes[i]+'LabelGroup', true);
+        if(group) {
+            group.traverse(function(obj) {
+                if(obj instanceof THREE.Sprite) {
+                    obj.visible = value;
+                }
+            });
+        }
     }
 };
 
@@ -322,7 +372,7 @@ FootyApp.prototype.generateData = function() {
 };
 */
 
-FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
+FootyApp.prototype.renderAttribute = function(attribute, row) {
     //Render given attribute for dataset
     var barScale = new THREE.Vector3(1, 1, 1);
     var barMaterial;
@@ -346,13 +396,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
             //Add label
             label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'resultsLabelBack';
+            this.scene.add(label);
 
             //Add values
-            if(showValues) {
-                var labelGroup = new THREE.Object3D();
-                labelGroup.name = 'resultsLabelGroup';
-            }
+            var labelGroup = new THREE.Object3D();
+            labelGroup.name = 'resultsLabelGroup';
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = loseMaterial;
@@ -381,27 +430,25 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
                 //Create bar
                 pos.y = barScale.y + START_Y;
-                var bar = this.renderItem('box', 'results' + this.objectsRendered, barMaterial, pos, barScale);
-                if(showValues) {
-                    pos.y += barScale.y + 1;
-                    var value = createLabel(barScale.y == 3 ? 'Won' : barScale.y == 2 ? 'Draw' : 'Lost', pos, labelScale, labelColour, 12, 1);
-                    labelGroup.add(value);
-                }
+                var bar = this.renderItem('box', 'results' + i, barMaterial, pos, barScale);
+                ++this.objectsRendered;
+                pos.y += barScale.y + 1;
+                var value = createLabel(barScale.y == 3 ? 'Win' : barScale.y == 2 ? 'Draw' : 'Lose', pos, labelScale, labelColour, 12, 1);
+                value.name = 'resultsLabel' + i;
+                labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
             labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
             label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'resultsLabelFront';
+            this.scene.add(label);
             //Add objects to scene
             this.scene.add(group);
             this.attributeGroups.push(group);
-            if(showValues) {
-                this.scene.add(labelGroup);
-                //DEBUG
-                console.log('Group pos=', labelGroup.position);
-            }
+            this.scene.add(labelGroup);
+            this.labelGroups.push(labelGroup);
             break;
 
         case 'points':
@@ -413,13 +460,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
             //Add label
             label = createLabel('Points', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'pointsLabelBack';
+            this.scene.add(label);
 
             //Add values
-            if(showValues) {
-                var labelGroup = new THREE.Object3D();
-                labelGroup.name = 'pointsLabelGroup';
-            }
+            var labelGroup = new THREE.Object3D();
+            labelGroup.name = 'pointsLabelGroup';
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = pointsMaterial;
@@ -429,25 +475,25 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
                 //Create bar
                 pos.y = barScale.y + START_Y;
-                var bar = this.renderItem('box', 'points' + this.objectsRendered, barMaterial, pos, barScale);
-                if(showValues) {
-                    pos.y += barScale.y + 1;
-                    var value = createLabel(barScale.y, pos, labelScale, labelColour, 12, 1);
-                    labelGroup.add(value);
-                }
+                var bar = this.renderItem('box', 'points' + i, barMaterial, pos, barScale);
+                ++this.objectsRendered;
+                pos.y += barScale.y + 1;
+                var value = createLabel(barScale.y*2, pos, labelScale, labelColour, 12, 1);
+                value.name = 'pointsLabel' + i;
+                labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
             labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
             label = createLabel('Points', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'pointsLabelFront';
+            this.scene.add(label);
             //Add objects to scene
             this.scene.add(group);
             this.attributeGroups.push(group);
-            if(showValues) {
-                this.scene.add(labelGroup);
-            }
+            this.scene.add(labelGroup);
+            this.labelGroups.push(labelGroup);
             break;
 
         case 'position':
@@ -459,13 +505,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
             //Add label
             label = createLabel('Position', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'positionLabelBack';
+            this.scene.add(label);
 
             //Add values
-            if(showValues) {
-                var labelGroup = new THREE.Object3D();
-                labelGroup.name = 'positionLabelGroup';
-            }
+            var labelGroup = new THREE.Object3D();
+            labelGroup.name = 'positionLabelGroup';
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = posMaterial;
@@ -477,25 +522,25 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
                 //Create bar
                 pos.y = barScale.y + START_Y;
-                var bar = this.renderItem('box', 'position' + this.objectsRendered, barMaterial, pos, barScale);
-                if(showValues) {
-                    pos.y += barScale.y + 1;
-                    var value = createLabel(barScale.y, pos, labelScale, labelColour, 12, 1);
-                    labelGroup.add(value);
-                }
+                var bar = this.renderItem('box', 'position' + i, barMaterial, pos, barScale);
+                ++this.objectsRendered;
+                pos.y += barScale.y + 1;
+                var value = createLabel(24-leaguePos, pos, labelScale, labelColour, 12, 1);
+                value.name = 'positionLabel' + i;
+                labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
             labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
             label = createLabel('Position', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'positionLabelFront';
+            this.scene.add(label);
             //Add objects to scene
             this.scene.add(group);
             this.attributeGroups.push(group);
-            if(showValues) {
-                this.scene.add(labelGroup);
-            }
+            this.scene.add(labelGroup);
+            this.labelGroups.push(labelGroup);
             break;
 
         case 'scored':
@@ -507,13 +552,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
             //Add label
             label = createLabel('Scored', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'scoredLabelBack';
+            this.scene.add(label);
 
             //Add values
-            if(showValues) {
-                var labelGroup = new THREE.Object3D();
-                labelGroup.name = 'scoredLabelGroup';
-            }
+            var labelGroup = new THREE.Object3D();
+            labelGroup.name = 'scoredLabelGroup';
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = goalMaterial;
@@ -524,33 +568,33 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
                 } else {
                     goals = item['FTAG'];
                 }
-                if(goals == 0) {
-                    pos.z += incZ;
-                    continue;
-                }
                 barScale.set(1, goals, 1);
+                //Show something for zero goals scored
+                if(goals == 0) {
+                    barScale.y = 0.05;
+                }
 
                 //Create bar
                 pos.y = barScale.y + START_Y;
-                var bar = this.renderItem('box', 'scored' + this.objectsRendered, barMaterial, pos, barScale);
-                if(showValues) {
-                    pos.y += barScale.y + 1;
-                    var value = createLabel(barScale.y, pos, labelScale, labelColour, 12, 1);
-                    labelGroup.add(value);
-                }
-                group.add(bar);
+                var bar = this.renderItem('box', 'scored' + i, barMaterial, pos, barScale);
+                ++this.objectsRendered;
+                pos.y += barScale.y + 1;
+                var value = createLabel(goals != 0 ? barScale.y : 0, pos, labelScale, labelColour, 12, 1);
+                value.name = 'scoredLabel' + i;
+                labelGroup.add(value);
+                if(bar) group.add(bar);
                 pos.z += incZ;
             }
             //Add label
             labelPos = new THREE.Vector3(pos.x,START_Y+0.5, pos.z);
             label = createLabel('Scored', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'scoredLabelFront';
+            this.scene.add(label);
             //Add objects to scene
             this.scene.add(group);
             this.attributeGroups.push(group);
-            if(showValues) {
-                this.scene.add(labelGroup);
-            }
+            this.scene.add(labelGroup);
+            this.labelGroups.push(labelGroup);
             break;
 
         case 'conceeded':
@@ -562,13 +606,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
 
             //Add label
             label = createLabel('Conceeded', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'conceededLabelBack';
+            this.scene.add(label);
 
             //Add values
-            if(showValues) {
-                var labelGroup = new THREE.Object3D();
-                labelGroup.name = 'conceededLabelGroup';
-            }
+            var labelGroup = new THREE.Object3D();
+            labelGroup.name = 'conceededLabelGroup';
 
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = goalMaterial;
@@ -579,33 +622,33 @@ FootyApp.prototype.renderAttribute = function(attribute, row, showValues) {
                 } else {
                     goals = item['FTHG'];
                 }
-                if(goals == 0) {
-                    pos.z += incZ;
-                    continue;
-                }
                 barScale.set(1, goals, 1);
+                //Show something for zero goals conceeded
+                if(goals == 0) {
+                    barScale.y = 0.05;
+                }
 
                 //Create bar
                 pos.y = barScale.y + START_Y;
-                var bar = this.renderItem('box', 'conceeded' + this.objectsRendered, barMaterial, pos, barScale);
-                if(showValues) {
-                    pos.y += barScale.y + 1;
-                    var value = createLabel(barScale.y, pos, labelScale, labelColour, 12, 1);
-                    labelGroup.add(value);
-                }
+                var bar = this.renderItem('box', 'conceeded' + i, barMaterial, pos, barScale);
+                ++this.objectsRendered;
+                pos.y += barScale.y + 1;
+                var value = createLabel(goals != 0 ? barScale.y : 0, pos, labelScale, labelColour, 12, 1);
+                value.name = 'conceeededLabel' + i;
+                labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
             labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
             label = createLabel('Conceeded', labelPos, labelScale, labelColour, 12, 1);
-            group.add(label);
+            label.name = 'conceededLabelFront';
+            this.scene.add(label);
             //Add objects to scene
             this.scene.add(group);
             this.attributeGroups.push(group);
-            if(showValues) {
-                this.scene.add(labelGroup);
-            }
+            this.scene.add(labelGroup);
+            this.labelGroups.push(labelGroup);
             break;
 
     }
@@ -687,12 +730,10 @@ FootyApp.prototype.renderItem = function(shape, name, material, pos, scale) {
 
 FootyApp.prototype.generateData = function() {
     //Render data for each enabled attribute
-    var attributes = ['points', 'position', 'conceeded', 'scored', 'results'];
     //Create group for each attribute
-    this.attributeGroups = [];
     var row = 0;
-    for(var i=0; i<attributes.length; ++i) {
-        this.renderAttribute(attributes[i], row, this.guiControls.ShowValues);
+    for(var i=0; i<this.attributes.length; ++i) {
+        this.renderAttribute(this.attributes[i], row);
         row += 5;
     }
 };

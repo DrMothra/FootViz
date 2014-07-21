@@ -37,8 +37,49 @@ FootyApp.prototype.update = function() {
         this.reDraw();
     }
     */
+    //Perform mouse hover
+    var vector = new THREE.Vector3(( this.mouse.x / window.innerWidth ) * 2 - 1, -( this.mouse.y / window.innerHeight ) * 2 + 1, 0.5);
+    this.projector.unprojectVector(vector, this.camera);
+
+    var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
+
+    this.hoverObjects.length = 0;
+    this.hoverObjects = raycaster.intersectObjects(this.scene.children, true);
+
+    //Check hover actions
+    hideResults();
+    if(this.hoverObjects.length != 0) {
+        for(var i=0; i<this.hoverObjects.length; ++i) {
+            var obj = this.hoverObjects[i].object;
+            if(obj instanceof THREE.Mesh) {
+                if(obj.name.indexOf('results') >= 0) {
+                    //Get results number
+                    var results = obj.name.substr(7, obj.name.length-7);
+                    var text = this.data[parseInt(results)];
+                    text = text['HomeTeam']+' '+text['FTHG']+' '+text['AwayTeam']+' '+text['FTAG'];
+                    showResults(this.mouse.x, this.mouse.y, text);
+                    break;
+                }
+            }
+        }
+    }
     BaseApp.prototype.update.call(this);
 };
+
+function hideResults() {
+    //Hide results panel
+    var element = $('#resultsPanel');
+    element.hide();
+}
+
+function showResults(left, top, text) {
+    //Show given result
+    var element = $('#resultsPanel');
+    element.html(text);
+    element.css('top', top-15);
+    element.css('left', left+15);
+    element.show();
+}
 
 FootyApp.prototype.createScene = function() {
     //Init base createsScene

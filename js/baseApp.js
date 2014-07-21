@@ -14,6 +14,7 @@ function BaseApp() {
     this.root = null;
     this.mouse = { x:0, y:0, clicked:false};
     this.pickedObjects = [];
+    this.hoverObjects = [];
     this.startTime = 0;
     this.elapsedTime = 0;
     this.clock = new THREE.Clock();
@@ -35,10 +36,13 @@ BaseApp.prototype.createRenderer = function() {
     this.renderer.shadowMapEnabled = true;
     this.renderer.setSize(window.innerWidth, window.innerHeight);
     this.container.appendChild( this.renderer.domElement );
-    var self = this;
+    var _this = this;
 
     this.container.addEventListener('mousedown', function(event) {
-        self.mouseClicked(event);
+        _this.mouseClicked(event);
+    }, false);
+    this.container.addEventListener('mousemove', function(event) {
+        _this.mouseMoved(event);
     }, false);
 };
 
@@ -55,6 +59,13 @@ BaseApp.prototype.mouseClicked = function(event) {
 
     this.pickedObjects.length = 0;
     this.pickedObjects = raycaster.intersectObjects(this.scene.children, true);
+};
+
+BaseApp.prototype.mouseMoved = function(event) {
+    //Update mouse state
+    this.mouse.x = event.clientX;
+    this.mouse.y = event.clientY;
+    this.mouse.clicked = false;
 };
 
 BaseApp.prototype.createScene = function() {

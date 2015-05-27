@@ -9,10 +9,12 @@ function BaseApp() {
     this.camera = null;
     this.controls = null;
     this.container = null;
-    this.projector = null;
     this.objectList = [];
+    this.rayCaster = new THREE.Raycaster();
     this.root = null;
-    this.mouse = { x:0, y:0, clicked:false};
+    this.mouse = new THREE.Vector2();
+    this.mouseDown = false;
+    this.mouseRaw = new THREE.Vector2();
     this.pickedObjects = [];
     this.hoverObjects = [];
     this.startTime = 0;
@@ -27,15 +29,7 @@ BaseApp.prototype.init = function(container) {
     console.log("BaseApp renderer =", this.renderer);
     this.createCamera();
     this.createControls();
-    this.projector = new THREE.Projector();
-};
 
-BaseApp.prototype.createRenderer = function() {
-    this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
-    this.renderer.setClearColor(0x5c5f64, 1.0);
-    this.renderer.shadowMapEnabled = true;
-    this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.container.appendChild( this.renderer.domElement );
     var _this = this;
 
     this.container.addEventListener('mousedown', function(event) {
@@ -46,26 +40,35 @@ BaseApp.prototype.createRenderer = function() {
     }, false);
 };
 
+BaseApp.prototype.createRenderer = function() {
+    this.renderer = new THREE.WebGLRenderer({preserveDrawingBuffer: true});
+    this.renderer.setClearColor(0x5c5f64, 1.0);
+    this.renderer.shadowMapEnabled = true;
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.container.appendChild( this.renderer.domElement );
+};
+
 BaseApp.prototype.mouseClicked = function(event) {
     //Update mouse state
-    this.mouse.x = event.clientX;
-    this.mouse.y = event.clientY;
-    this.mouse.clicked = true;
+    this.mouseRaw.x = event.clientX;
+    this.mouseRaw.y = event.clientY;
 
-    var vector = new THREE.Vector3(( event.clientX / window.innerWidth ) * 2 - 1, -( event.clientY / window.innerHeight ) * 2 + 1, 0.5);
-    this.projector.unprojectVector(vector, this.camera);
+    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
 
-    var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
+    this.mouseDown = true;
+
+    this.rayCaster.setFromCamera( this.mouse, this.camera );
 
     this.pickedObjects.length = 0;
-    this.pickedObjects = raycaster.intersectObjects(this.scene.children, true);
+    this.pickedObjects = this.rayCaster.intersectObjects(this.scene.children, true);
 };
 
 BaseApp.prototype.mouseMoved = function(event) {
     //Update mouse state
-    this.mouse.x = event.clientX;
-    this.mouse.y = event.clientY;
-    this.mouse.clicked = false;
+    this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
+    this.mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
+    this.mouseDown = false;
 };
 
 BaseApp.prototype.createScene = function() {

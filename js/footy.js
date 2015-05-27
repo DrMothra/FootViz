@@ -30,7 +30,7 @@ FootyApp.prototype.init = function(container) {
 
 FootyApp.prototype.update = function() {
     //Perform any updates
-    var clicked = this.mouse.clicked;
+    var clicked = this.mouseDown;
 
     /*
     if(this.updateRequired) {
@@ -38,13 +38,8 @@ FootyApp.prototype.update = function() {
     }
     */
     //Perform mouse hover
-    var vector = new THREE.Vector3(( this.mouse.x / window.innerWidth ) * 2 - 1, -( this.mouse.y / window.innerHeight ) * 2 + 1, 0.5);
-    this.projector.unprojectVector(vector, this.camera);
-
-    var raycaster = new THREE.Raycaster(this.camera.position, vector.sub(this.camera.position).normalize());
-
     this.hoverObjects.length = 0;
-    this.hoverObjects = raycaster.intersectObjects(this.scene.children, true);
+    this.hoverObjects = this.rayCaster.intersectObjects(this.scene.children, true);
 
     //Check hover actions
     hideResults();
@@ -108,8 +103,8 @@ FootyApp.prototype.reDraw = function() {
 function addGroundPlane(scene, width, height) {
     // create the ground plane
     var planeGeometry = new THREE.PlaneGeometry(width,height,1,1);
-    var texture = THREE.ImageUtils.loadTexture("images/grid.png");
-    var planeMaterial = new THREE.MeshLambertMaterial({map: texture, transparent: true, opacity: 0.5});
+    var texture = THREE.ImageUtils.loadTexture("images/pitch.jpg");
+    var planeMaterial = new THREE.MeshLambertMaterial({map: texture, transparent: false, opacity: 0.5});
     var plane = new THREE.Mesh(planeGeometry,planeMaterial);
 
     //plane.receiveShadow  = true;
@@ -123,6 +118,7 @@ function addGroundPlane(scene, width, height) {
     scene.add(plane);
 
     //Second plane
+    /*
     planeGeometry = new THREE.PlaneGeometry(width, height, 1, 1);
     planeMaterial = new THREE.MeshLambertMaterial({color: 0x16283c});
     plane = new THREE.Mesh(planeGeometry, planeMaterial);
@@ -135,6 +131,7 @@ function addGroundPlane(scene, width, height) {
 
     // add the plane to the scene
     scene.add(plane);
+    */
 }
 
 FootyApp.prototype.createGUI = function() {
@@ -148,7 +145,7 @@ FootyApp.prototype.createGUI = function() {
         this.Position = "#0000ff";
         this.Conceeded = "#fff725";
         this.Scored = "#ff196e";
-        this.Ground = '#16283c';
+        //this.Ground = '#16283c';
         this.Background = '#5c5f64';
         this.AttributeScale = 1;
         this.Attribute = 'points';
@@ -171,9 +168,11 @@ FootyApp.prototype.createGUI = function() {
     gui.add(this.guiControls, 'filename', this.filename).listen();
     this.guiAppear = gui.addFolder("Appearance");
 
+    /*
     this.guiAppear.addColor(this.guiControls, 'Ground').onChange(function(value) {
         _this.groundColourChanged(value);
     });
+    */
     this.guiAppear.addColor(this.guiControls, 'Background').onChange(function(value) {
         _this.renderer.setClearColor(value, 1.0);
     });

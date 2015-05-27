@@ -11,6 +11,14 @@ body {
     left: 10px;
     color: #7fa5ff;
 }
+#title {
+    position: absolute;
+    top: 2%;
+    left: 40%;
+}
+#title img {
+    width: 10%;
+}
 .mainButton {
     border-radius: 5px;
     position: absolute;

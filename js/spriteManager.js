@@ -22,7 +22,7 @@ var spriteManager = (function () {
             //Create label
             var canvas = document.createElement('canvas');
             var spriteName = ' ' + name + ' ';
-            //canvas.width = 400;
+            canvas.width = 200;
 
             var context = canvas.getContext('2d');
             context.font = fontSize + "px " + defaultFontFace;
@@ -30,6 +30,7 @@ var spriteManager = (function () {
 
             var metrics = context.measureText( spriteName );
             var textWidth = metrics.width;
+            //canvas.width = textWidth;
 
             //Background
             context.fillStyle = backgroundColour;

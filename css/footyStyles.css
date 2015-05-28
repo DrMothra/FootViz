@@ -10,14 +10,21 @@ body {
     top: 10px;
     left: 10px;
     color: #7fa5ff;
+    text-align: center;
 }
 #title {
     position: absolute;
-    top: 2%;
-    left: 40%;
+    top: 1%;
+    left: 33%;
+    color: #7fa5ff;
+    font-size: 2vw;
+}
+#title div {
+    float: left;
+    padding: 1%;
 }
 #title img {
-    width: 10%;
+    width: 5%;
 }
 .mainButton {
     border-radius: 5px;

@@ -19,7 +19,7 @@ FootyApp.prototype.init = function(container) {
     this.updateRequired = false;
     this.guiControls = null;
     this.dataFile = null;
-    this.filename = '';
+    this.filename = 'forest.json';
     this.objectsRendered = 0;
     //Groups to render
     this.attributes = ['points', 'position', 'conceeded', 'scored', 'results'];
@@ -84,6 +84,29 @@ FootyApp.prototype.createScene = function() {
     this.GROUND_DEPTH = 240;
     this.GROUND_WIDTH = 180;
     addGroundPlane(this.scene, this.GROUND_WIDTH, this.GROUND_DEPTH);
+
+    //Set up label colours
+    this.defaultTextColour = [255, 255, 255], this.defaultBackColour = [0, 0, 0], this.defaultBorderColour = [125, 125, 125];
+    this.valueBackColour = [200, 200, 200], this.valueBorderColour = [255, 255, 255];
+    spriteManager.setTextColour(this.defaultTextColour);
+    spriteManager.setBackgroundColour(this.defaultBackColour);
+    spriteManager.setBorderColour(this.defaultBorderColour);
+
+    //label attributes
+    this.mainLabelScale = new THREE.Vector3(10, 3, 1);
+    this.valueLabelScale = new THREE.Vector3(4, 2, 1);
+
+    //Load json data
+    var _this = this;
+    var dataLoad = new dataLoader();
+    var dataParser = function(data) {
+        _this.data = data;
+        _this.generateGUIControls();
+        _this.generateData();
+        _this.updateRequired = true;
+    };
+
+    dataLoad.load("data/forest.json", dataParser);
 };
 
 FootyApp.prototype.clearScene = function() {
@@ -98,6 +121,19 @@ FootyApp.prototype.reDraw = function() {
     this.clearScene();
 
     this.generateData();
+};
+
+FootyApp.prototype.keydown = function(event) {
+    //Do any key processing
+    switch(event.keyCode) {
+        case 80: //P
+            console.log("Cam =", this.camera.position);
+            console.log("Look =", this.controls.getLookAt());
+            break;
+
+        default :
+            break;
+    }
 };
 
 function addGroundPlane(scene, width, height) {
@@ -419,9 +455,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
     var pos = new THREE.Vector3(START_X + row, START_Y, START_Z);
     var incZ = 3;
     //Labels
-    var labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z -3);
-    var labelScale = new THREE.Vector3(3, 1, 1);
-    var labelColour = [255, 255, 255];
+    var labelPos = new THREE.Vector3(pos.x, START_Y, pos.z);
     var label;
 
     switch (attribute) {
@@ -435,7 +469,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var loseMaterial = new THREE.MeshPhongMaterial({color: 0xff0000});
 
             //Add label
-            label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
+            label = spriteManager.create('Results', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'resultsLabelBack';
             this.scene.add(label);
 
@@ -443,6 +477,8 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var labelGroup = new THREE.Object3D();
             labelGroup.name = 'resultsLabelGroup';
 
+            spriteManager.setBackgroundColour(this.valueBackColour);
+            spriteManager.setBorderColour(this.valueBorderColour);
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = loseMaterial;
                 barScale.set(1, 1, 1);
@@ -473,15 +509,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'results' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y + 1;
-                var value = createLabel(barScale.y == 3 ? 'Win' : barScale.y == 2 ? 'Draw' : 'Lose', pos, labelScale, labelColour, 12, 1);
+                var value = spriteManager.create(barScale.y == 3 ? 'Win' : barScale.y == 2 ? 'Draw' : 'Lose', pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'resultsLabel' + i;
                 labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
-            labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
-            label = createLabel('Results', labelPos, labelScale, labelColour, 12, 1);
+            labelPos.z = pos.z;
+            spriteManager.setBackgroundColour(this.defaultBackColour);
+            spriteManager.setBorderColour(this.defaultBorderColour);
+            label = spriteManager.create('Results', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'resultsLabelFront';
             this.scene.add(label);
             //Add objects to scene
@@ -499,7 +537,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var pointsMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
 
             //Add label
-            label = createLabel('Points', labelPos, labelScale, labelColour, 12, 1);
+            label = spriteManager.create('Points', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'pointsLabelBack';
             this.scene.add(label);
 
@@ -507,6 +545,8 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var labelGroup = new THREE.Object3D();
             labelGroup.name = 'pointsLabelGroup';
 
+            spriteManager.setBackgroundColour(this.valueBackColour);
+            spriteManager.setBorderColour(this.valueBorderColour);
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = pointsMaterial;
                 var item = this.data[i];
@@ -518,15 +558,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'points' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y + 1;
-                var value = createLabel(barScale.y*2, pos, labelScale, labelColour, 12, 1);
+                var value = spriteManager.create(barScale.y*2, pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'pointsLabel' + i;
                 labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
-            labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
-            label = createLabel('Points', labelPos, labelScale, labelColour, 12, 1);
+            labelPos = new THREE.Vector3(pos.x, START_Y, pos.z);
+            spriteManager.setBackgroundColour(this.defaultBackColour);
+            spriteManager.setBorderColour(this.defaultBorderColour);
+            label = spriteManager.create('Points', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'pointsLabelFront';
             this.scene.add(label);
             //Add objects to scene
@@ -544,7 +586,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var posMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff});
 
             //Add label
-            label = createLabel('Position', labelPos, labelScale, labelColour, 12, 1);
+            label = spriteManager.create('Position', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'positionLabelBack';
             this.scene.add(label);
 
@@ -552,6 +594,8 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var labelGroup = new THREE.Object3D();
             labelGroup.name = 'positionLabelGroup';
 
+            spriteManager.setBackgroundColour(this.valueBackColour);
+            spriteManager.setBorderColour(this.valueBorderColour);
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = posMaterial;
                 var item = this.data[i];
@@ -565,15 +609,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'position' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y + 1;
-                var value = createLabel(24-leaguePos, pos, labelScale, labelColour, 12, 1);
+                var value = spriteManager.create(24-leaguePos, pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'positionLabel' + i;
                 labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
-            labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
-            label = createLabel('Position', labelPos, labelScale, labelColour, 12, 1);
+            spriteManager.setBackgroundColour(this.defaultBackColour);
+            spriteManager.setBorderColour(this.defaultBorderColour);
+            labelPos = new THREE.Vector3(pos.x, START_Y, pos.z);
+            label = spriteManager.create('Position', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'positionLabelFront';
             this.scene.add(label);
             //Add objects to scene
@@ -591,7 +637,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFF196E});
 
             //Add label
-            label = createLabel('Scored', labelPos, labelScale, labelColour, 12, 1);
+            label = spriteManager.create('Scored', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'scoredLabelBack';
             this.scene.add(label);
 
@@ -599,6 +645,8 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var labelGroup = new THREE.Object3D();
             labelGroup.name = 'scoredLabelGroup';
 
+            spriteManager.setBackgroundColour(this.valueBackColour);
+            spriteManager.setBorderColour(this.valueBorderColour);
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = goalMaterial;
                 var item = this.data[i];
@@ -619,15 +667,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'scored' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y + 1;
-                var value = createLabel(goals != 0 ? barScale.y : 0, pos, labelScale, labelColour, 12, 1);
+                var value = spriteManager.create(goals != 0 ? barScale.y : 0, pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'scoredLabel' + i;
                 labelGroup.add(value);
                 if(bar) group.add(bar);
                 pos.z += incZ;
             }
             //Add label
-            labelPos = new THREE.Vector3(pos.x,START_Y+0.5, pos.z);
-            label = createLabel('Scored', labelPos, labelScale, labelColour, 12, 1);
+            labelPos = new THREE.Vector3(pos.x,START_Y, pos.z);
+            spriteManager.setBackgroundColour(this.defaultBackColour);
+            spriteManager.setBorderColour(this.defaultBorderColour);
+            label = spriteManager.create('Scored', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'scoredLabelFront';
             this.scene.add(label);
             //Add objects to scene
@@ -645,7 +695,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFFF725});
 
             //Add label
-            label = createLabel('Conceeded', labelPos, labelScale, labelColour, 12, 1);
+            label = spriteManager.create('Conceeded', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'conceededLabelBack';
             this.scene.add(label);
 
@@ -653,6 +703,8 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             var labelGroup = new THREE.Object3D();
             labelGroup.name = 'conceededLabelGroup';
 
+            spriteManager.setBackgroundColour(this.valueBackColour);
+            spriteManager.setBorderColour(this.valueBorderColour);
             for(var i=0; i<this.data.length; ++i) {
                 barMaterial = goalMaterial;
                 var item = this.data[i];
@@ -673,15 +725,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'conceeded' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y + 1;
-                var value = createLabel(goals != 0 ? barScale.y : 0, pos, labelScale, labelColour, 12, 1);
+                var value = spriteManager.create(goals != 0 ? barScale.y : 0, pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'conceeededLabel' + i;
                 labelGroup.add(value);
                 group.add(bar);
                 pos.z += incZ;
             }
             //Add label
-            labelPos = new THREE.Vector3(pos.x, START_Y+0.5, pos.z);
-            label = createLabel('Conceeded', labelPos, labelScale, labelColour, 12, 1);
+            labelPos = new THREE.Vector3(pos.x, START_Y, pos.z);
+            spriteManager.setBackgroundColour(this.defaultBackColour);
+            spriteManager.setBorderColour(this.defaultBorderColour);
+            label = spriteManager.create('Conceeded', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'conceededLabelFront';
             this.scene.add(label);
             //Add objects to scene
@@ -773,6 +827,8 @@ FootyApp.prototype.generateData = function() {
     //Create group for each attribute
     var row = 0;
     for(var i=0; i<this.attributes.length; ++i) {
+        spriteManager.setBorderColour(this.defaultBorderColour);
+        spriteManager.setBackgroundColour(this.defaultBackColour);
         this.renderAttribute(this.attributes[i], row);
         row += 5;
     }
@@ -844,6 +900,10 @@ $(document).ready(function() {
     //GUI callbacks
     $("#chooseFile").on("change", function(evt) {
         app.onSelectFile(evt);
+    });
+
+    $(document).keydown(function(event) {
+        app.keydown(event);
     });
 
     app.run();

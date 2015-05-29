@@ -22,7 +22,7 @@ var spriteManager = (function () {
             //Create label
             var canvas = document.createElement('canvas');
             var spriteName = ' ' + name + ' ';
-            canvas.width = 200;
+            canvas.width = 400;
 
             var context = canvas.getContext('2d');
             context.font = fontSize + "px " + defaultFontFace;
@@ -30,7 +30,6 @@ var spriteManager = (function () {
 
             var metrics = context.measureText( spriteName );
             var textWidth = metrics.width;
-            //canvas.width = textWidth;
 
             //Background
             context.fillStyle = backgroundColour;
@@ -39,11 +38,13 @@ var spriteManager = (function () {
             context.lineWidth = defaultBorderThickness;
 
             //Draw rounded rectangle
-            roundRect(context, defaultBorderThickness/2, defaultBorderThickness/2, textWidth + defaultBorderThickness, fontSize * 1.4 + defaultBorderThickness, defaultRadius);
+            //Position text in centre of canvas
+            var offset = (canvas.width - (textWidth + defaultBorderThickness))/2;
+            roundRect(context, offset, defaultBorderThickness/2, defaultBorderThickness/2, textWidth + defaultBorderThickness, fontSize * 1.4 + defaultBorderThickness, defaultRadius);
 
             //Text
             context.fillStyle = textColour;
-            context.fillText( spriteName, defaultBorderThickness, fontSize + defaultBorderThickness);
+            context.fillText( spriteName, defaultBorderThickness + offset, fontSize + defaultBorderThickness);
 
             // canvas contents will be used for a texture
             var texture = new THREE.Texture(canvas);
@@ -65,7 +66,7 @@ var spriteManager = (function () {
             labelNames.push(name);
             sprite.visible = visible;
 
-            //var offset = (400 - textWidth) / 80;
+            //var offset = (canvas.width - textWidth) / 80;
             sprite.position.set(position.x, position.y, position.z);
             sprite.scale.set(scale.x, scale.y, 1);
 
@@ -120,8 +121,9 @@ var spriteManager = (function () {
 })();
 
 // function for drawing rounded rectangles
-function roundRect(ctx, x, y, w, h, r)
+function roundRect(ctx, offset, x, y, w, h, r)
 {
+    x += offset;
     ctx.beginPath();
     ctx.moveTo(x+r, y);
     ctx.lineTo(x+w-r, y);

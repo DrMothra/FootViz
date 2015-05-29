@@ -39,6 +39,7 @@ FootyApp.prototype.update = function() {
     */
     //Perform mouse hover
     this.hoverObjects.length = 0;
+    this.rayCaster.setFromCamera( this.mouse, this.camera );
     this.hoverObjects = this.rayCaster.intersectObjects(this.scene.children, true);
 
     //Check hover actions
@@ -52,7 +53,7 @@ FootyApp.prototype.update = function() {
                     var results = obj.name.substr(7, obj.name.length-7);
                     var text = this.data[parseInt(results)];
                     text = text['HomeTeam']+' '+text['FTHG']+' '+text['AwayTeam']+' '+text['FTAG'];
-                    showResults(this.mouse.x, this.mouse.y, text);
+                    showResults(this.mouseRaw.x, this.mouseRaw.y, text);
                     break;
                 }
             }
@@ -93,8 +94,8 @@ FootyApp.prototype.createScene = function() {
     spriteManager.setBorderColour(this.defaultBorderColour);
 
     //label attributes
-    this.mainLabelScale = new THREE.Vector3(4, 4, 1);
-    this.valueLabelScale = new THREE.Vector3(3, 3, 1);
+    this.mainLabelScale = new THREE.Vector3(10, 4, 1);
+    this.valueLabelScale = new THREE.Vector3(7, 4, 1);
 
     //Load json data
     var _this = this;
@@ -466,7 +467,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
     var pos = new THREE.Vector3(START_X + row, START_Y, START_Z);
     var incZ = 3;
     //Labels
-    var labelPos = new THREE.Vector3(pos.x, START_Y, pos.z);
+    var labelPos = new THREE.Vector3(pos.x, START_Y, pos.z - 3);
     var label;
 
     switch (attribute) {

@@ -66,6 +66,8 @@ BaseApp.prototype.mouseClicked = function(event) {
 
 BaseApp.prototype.mouseMoved = function(event) {
     //Update mouse state
+    this.mouseRaw.x = event.clientX;
+    this.mouseRaw.y = event.clientY;
     this.mouse.x = ( event.clientX / window.innerWidth ) * 2 - 1;
     this.mouse.y = -( event.clientY / window.innerHeight ) * 2 + 1;
     this.mouseDown = false;

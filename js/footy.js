@@ -88,7 +88,7 @@ FootyApp.prototype.createScene = function() {
 
     //Set up label colours
     this.defaultTextColour = [255, 255, 255], this.defaultBackColour = [0, 0, 0], this.defaultBorderColour = [125, 125, 125];
-    this.valueTextColour = [0, 0, 0], this.valueBackColour = [200, 200, 200], this.valueBorderColour = [255, 255, 255];
+    this.valueTextColour = [255, 184, 57], this.valueBackColour = [55, 55, 55], this.valueBorderColour = [0, 0, 0];
     spriteManager.setTextColour(this.defaultTextColour);
     spriteManager.setBackgroundColour(this.defaultBackColour);
     spriteManager.setBorderColour(this.defaultBorderColour);
@@ -112,6 +112,7 @@ FootyApp.prototype.createScene = function() {
     //Load object
     var manager = new THREE.LoadingManager();
     var loader = new THREE.OBJLoader( manager );
+    /*
     loader.load( 'models/goalSimp.obj', function ( object ) {
 
         _this.loadedModel = object;
@@ -119,6 +120,7 @@ FootyApp.prototype.createScene = function() {
         _this.scene.add(object);
 
     }, null, null );
+    */
 };
 
 FootyApp.prototype.clearScene = function() {
@@ -197,6 +199,10 @@ FootyApp.prototype.createGUI = function() {
         this.Background = '#5c5f64';
         this.AttributeScale = 1;
         this.Attribute = 'points';
+        //Label colours
+        this.Text = [255, 184, 57];
+        this.Label = [55, 55, 55];
+        this.Border = [0, 0, 0];
 
         //Categories
         this.ShowPoints = true;
@@ -244,6 +250,11 @@ FootyApp.prototype.generateGUIControls = function() {
     });
     this.guiAppear.addColor(this.guiControls, 'Scored').onChange(function(value) {
         _this.onScoredChanged(value);
+    });
+    this.guiAppear.addColor(this.guiControls, 'Text').onChange(function(value) {
+        _this.valueTextColour[0] = value[0];
+        _this.valueTextColour[1] = value[1];
+        _this.valueTextColour[2] = value[2];
     });
 
     var attribScale = this.guiAppear.add(this.guiControls, 'AttributeScale', 0.25, 10).step(0.25);

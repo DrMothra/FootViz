@@ -1,6 +1,9 @@
 /* Styles for webgl football visualisations */
 
 body {
+
+}
+.render {
     /* set margin to 0 and overflow to hidden, to go fullscreen */
     margin: 0;
     overflow: hidden;
@@ -10,6 +13,9 @@ body {
     top: 10px;
     left: 10px;
     color: #7fa5ff;
+    text-align: center;
+}
+.centred {
     text-align: center;
 }
 #title {
@@ -60,4 +66,26 @@ body {
     background-color: rgba(119, 119, 119, 0.50);
     color: #7fa5ff;
     text-align: center;
+}
+/* Instructions */
+#instructionTitle {
+    font-size: 2vw;
+    color: darkred;
+}
+#instructionTitle img {
+    width: 15%;
+}
+#instructPage {
+    background-color: #5c5f64;
+}
+.instructionText p {
+    color: white;
+    text-align: left;
+}
+.instructionText h3 {
+    text-align: left;
+    color: #303030;
+}
+.instructionText img {
+    width: 50%;
 }

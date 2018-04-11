@@ -2,44 +2,62 @@
 <html>
 <head lang="en">
     <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1.0, user-scalable=0">
+
     <title>Football Visualiser - Nottingham Forest</title>
 
-    <script type="text/javascript" src="js/three71.js"></script>
-    <script type="text/javascript" src="js/jquery-1.11.2.min.js"></script>
-    <script type="text/javascript" src="js/TrackballControls.js?v=0.1"></script>
-    <script type="text/javascript" src="js/dat.gui.js"></script>
-    <script type="text/javascript" src="js/dataLoader.js"></script>
-    <script type="text/javascript" src="js/OBJLoader.js"></script>
-    <script type="text/javascript" src="js/baseApp.js?v=0.1"></script>
-    <script type="text/javascript" src="js/spriteManager.js"></script>
-    <script type="text/javascript" src="js/footy.js?v=0.1"></script>
+    <link rel="stylesheet" href="css/bootstrap.min.css">
+    <link rel="stylesheet" href="css/footyStyles.css?v=0.1">
 
-    <link rel="stylesheet" href="css/pure-min.css">
-    <link href="css/footyStyles.css?v=0.3" rel="stylesheet" type="text/css">
+    <script src="js/three71.js"></script>
+    <script src="js/jquery-1.11.2.min.js"></script>
+    <script src="js/TrackballControls.js?v=0.1"></script>
+    <script src="js/dat.gui.js"></script>
+    <script src="js/dataLoader.js"></script>
+    <script src="js/OBJLoader.js"></script>
+    <script src="js/baseApp.js?v=0.1"></script>
+    <script src="js/spriteManager.js"></script>
+    <script src="js/footy.js?v=0.1"></script>
+
 </head>
-<body class="render">
-<!-- Stats output -->
-<div id="Stats-output">
-</div>
-<!-- Div which will hold the Output -->
-<div id="WebGL-output">
-</div>
-<!-- Start menu -->
-<div class="version">
-    <span>FootViz 0.1 (read only)</span>
-    <div id="instructions">
-        <a href="instructions.html" target="_blank"><img src="images/info.png"></a>
-    </div>
-</div>
+<body>
+    <!-- Stats output -->
+    <div id="Stats-output">
 
-<div id="title">
-    <div>
-        Nottingham Forest - Results 2013-2014
     </div>
-    <img src="images/forest.png">
-</div>
+    <!-- Div which will hold the Output -->
+    <div id="WebGL-output">
 
-<div id="resultsPanel" class="resultsInfo">
-</div>
+    </div>
+
+    <!-- Start menu -->
+    <div id="title">
+        <div>
+            Nottingham Forest - Results 2013-2014
+        </div>
+        <img src="images/forest.png">
+    </div>
+
+    <div id="resultsPanel" class="resultsInfo">
+
+    </div>
+
+    <div id="zoomControls" class="infoPanel text-center">
+        <p>Zoom</p>
+        <div>
+            <button id="zoomOut" type="button" class="btn btn-primary"><img src="images/minus.png"></button>
+            <button id="zoomIn" type="button" class="btn btn-primary"><img src="images/add.png"></button>
+        </div>
+    </div>
+
+    <div id="rotateControls" class="infoPanel text-center">
+        <p>Rotate</p>
+        <div>
+            <button id="camLeft" type="button" class="btn btn-primary"><img src="images/leftWhite.png"></button>
+            <button id="camRight" type="button" class="btn btn-primary"><img src="images/rightWhite.png"></button>
+        </div>
+    </div>
+
 </body>
 </html>

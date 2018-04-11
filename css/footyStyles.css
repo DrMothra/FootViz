@@ -1,9 +1,6 @@
 /* Styles for webgl football visualisations */
 
 body {
-
-}
-.render {
     /* set margin to 0 and overflow to hidden, to go fullscreen */
     margin: 0;
     overflow: hidden;
@@ -13,9 +10,6 @@ body {
     top: 10px;
     left: 10px;
     color: #7fa5ff;
-    text-align: center;
-}
-.centred {
     text-align: center;
 }
 #title {
@@ -31,29 +25,6 @@ body {
 }
 #title img {
     width: 5%;
-}
-.mainButton {
-    border-radius: 5px;
-    position: absolute;
-    padding: 5px;
-    background-color: rgba(150, 150, 150, 0.5);
-    overflow: hidden;
-    color: #7fa5ff;
-}
-#loadButton {
-    top: 50px;
-    left: 75px;
-}
-.upload {
-    position: absolute;
-    top: 0px;
-    left: 0px;
-    margin: 0;
-    padding: 0px;
-    font-size: 20px;
-    cursor: pointer;
-    opacity: 0;
-    background-color: #004040;
 }
 .resultsInfo {
     position: absolute;
@@ -88,4 +59,42 @@ body {
 }
 .instructionText img {
     width: 50%;
+}
+.infoPanel {
+    position: absolute;
+    color: white;
+}
+#zoomControls {
+    bottom: 15.0%;
+    right: 1.5%;
+    width: 7.5%;
+    -webkit-touch-callout: none;
+}
+#zoomControls p {
+    font-size: 1.5rem;
+    margin: 0;
+}
+#zoomControls button {
+    width: 45%;
+    padding: 0;
+}
+#zoomControls img {
+    width: 90%;
+}
+#rotateControls {
+    bottom: 3.5%;
+    right: 1.5%;
+    width: 7.5%;
+    -webkit-touch-callout: none;
+}
+#rotateControls p {
+    font-size: 1.5rem;
+    margin: 0;
+}
+#rotateControls button {
+    width: 45%;
+    padding: 0;
+}
+#rotateControls img {
+    width: 90%;
 }

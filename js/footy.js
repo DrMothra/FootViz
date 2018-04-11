@@ -77,13 +77,13 @@ FootyApp.prototype.update = function() {
     }
 
     if(this.zoomingIn) {
-        this.tempVec.sub(this.camera.position, this.controls.getLookAt());
+        this.tempVec.subVectors(this.camera.position, this.controls.getLookAt());
         this.tempVec.multiplyScalar(this.zoomSpeed * delta);
         this.root.position.add(this.tempVec);
     }
 
     if(this.zoomingOut) {
-        this.tempVec.sub(this.camera.position, this.controls.getLookAt());
+        this.tempVec.subVectors(this.camera.position, this.controls.getLookAt());
         this.tempVec.multiplyScalar(this.zoomSpeed * delta);
         this.root.position.sub(this.tempVec);
     }
@@ -145,7 +145,7 @@ FootyApp.prototype.createScene = function() {
     var dataLoad = new dataLoader();
     var dataParser = function(data) {
         _this.data = data;
-        _this.generateGUIControls();
+        //_this.generateGUIControls();
         _this.generateData();
         _this.updateRequired = true;
     };
@@ -230,7 +230,6 @@ function addGroundPlane(root, width, height) {
 FootyApp.prototype.createGUI = function() {
     //Create GUI - use dat.GUI for now
     this.guiControls = new function() {
-        this.filename = '';
         this.ShowLabels = false;
 
         //Colours
@@ -262,7 +261,6 @@ FootyApp.prototype.createGUI = function() {
     var gui = new dat.GUI();
     var _this = this;
     //Create two folders - Appearance and Data
-    gui.add(this.guiControls, 'filename', this.filename).listen();
     this.guiAppear = gui.addFolder("Appearance");
 
     /*
@@ -279,7 +277,6 @@ FootyApp.prototype.createGUI = function() {
 
 FootyApp.prototype.generateGUIControls = function() {
     //Generate GUI elements from data
-    this.guiControls.filename = this.filename;
 
     var _this = this;
     this.guiAppear.addColor(this.guiControls, 'Points').onChange(function(value) {
@@ -468,7 +465,6 @@ FootyApp.prototype.reset = function() {
     this.filename = "";
 
     //Clear gui controls
-    this.guiControls.filename = null;
     this.guiControls = null;
     this.guiAppear = null;
     this.guiData = null;
@@ -986,7 +982,7 @@ $(document).ready(function() {
     var app = new FootyApp();
     app.init(container);
     app.createScene();
-    app.createGUI();
+    //app.createGUI();
 
     //GUI callbacks
     $("#chooseFile").on("change", function(evt) {

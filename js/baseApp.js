@@ -36,6 +36,9 @@ BaseApp.prototype.init = function(container) {
     this.container.addEventListener('mousemove', function(event) {
         _this.mouseMoved(event);
     }, false);
+    window.addEventListener("resize", function(event) {
+        _this.windowResize(event);
+    }, false);
 };
 
 BaseApp.prototype.createRenderer = function() {
@@ -71,6 +74,14 @@ BaseApp.prototype.mouseMoved = function(event) {
     this.mouseDown = false;
 };
 
+BaseApp.prototype.windowResize = function(event) {
+    //Handle window resize
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+
+    this.renderer.setSize( window.innerWidth, window.innerHeight);
+};
+
 BaseApp.prototype.createScene = function() {
     this.scene = new THREE.Scene();
 
@@ -95,8 +106,10 @@ BaseApp.prototype.createControls = function() {
     this.controls.zoomSpeed = 1.0;
     this.controls.panSpeed = 1.0;
 
-    this.controls.noZoom = false;
-    this.controls.noPan = false;
+    this.controls.noZoom = true;
+    this.controls.noPan = true;
+    this.controls.noRoll = true;
+    this.controls.noRotate = true;
 
     this.controls.staticMoving = true;
     this.controls.dynamicDampingFactor = 0.3;

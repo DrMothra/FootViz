@@ -15,16 +15,16 @@ body {
 #title {
     position: absolute;
     top: 1%;
-    left: 33%;
+    width: 75%;
+    left: 12.5%;
     color: #7fa5ff;
-    font-size: 2vw;
+    font-size: 1rem;
 }
-#title div {
-    float: left;
-    padding: 1%;
+#title p {
+    margin: 0;
 }
 #title img {
-    width: 5%;
+    width: 10%;
 }
 .resultsInfo {
     position: absolute;
@@ -65,13 +65,13 @@ body {
     color: white;
 }
 #zoomControls {
-    bottom: 15.0%;
+    bottom: 20.0%;
     right: 1.5%;
-    width: 7.5%;
+    width: 15%;
     -webkit-touch-callout: none;
 }
 #zoomControls p {
-    font-size: 1.5rem;
+    font-size: 1rem;
     margin: 0;
 }
 #zoomControls button {
@@ -82,13 +82,13 @@ body {
     width: 90%;
 }
 #rotateControls {
-    bottom: 3.5%;
+    bottom: 5%;
     right: 1.5%;
-    width: 7.5%;
+    width: 15%;
     -webkit-touch-callout: none;
 }
 #rotateControls p {
-    font-size: 1.5rem;
+    font-size: 1rem;
     margin: 0;
 }
 #rotateControls button {

@@ -103,7 +103,7 @@ BaseApp.prototype.createControls = function() {
 
     this.controls.keys = [ 65, 83, 68 ];
 
-    var lookAt = new THREE.Vector3(0, -30, 0);
+    var lookAt = new THREE.Vector3(0, -60, 0);
     this.controls.setLookAt(lookAt);
 };
 

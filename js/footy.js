@@ -7,6 +7,8 @@ var START_Y = -60;
 var START_Z = -70;
 
 var ZOOM_SPEED = 0.1;
+var RIGHT = 0;
+var LEFT = 1;
 
 //Init this app from base
 function FootyApp() {
@@ -35,6 +37,10 @@ FootyApp.prototype.init = function(container) {
     this.tempVec = new THREE.Vector3();
 
     this.zoomSpeed = ZOOM_SPEED;
+
+    this.rotDirection = 1;
+    this.cameraRotate = false;
+    this.rotSpeed = Math.PI/20;
 };
 
 FootyApp.prototype.update = function() {
@@ -80,6 +86,10 @@ FootyApp.prototype.update = function() {
         this.tempVec.sub(this.camera.position, this.controls.getLookAt());
         this.tempVec.multiplyScalar(this.zoomSpeed * delta);
         this.root.position.sub(this.tempVec);
+    }
+
+    if(this.cameraRotate) {
+        this.root.rotation.y += (this.rotSpeed * this.rotDirection * delta);
     }
 
     BaseApp.prototype.update.call(this);
@@ -965,6 +975,11 @@ FootyApp.prototype.zoomOut = function(zoom) {
     this.zoomingOut = zoom;
 };
 
+FootyApp.prototype.rotateCamera = function(status, direction) {
+    this.rotDirection = direction === RIGHT ? 1 : -1;
+    this.cameraRotate = status;
+};
+
 $(document).ready(function() {
     //Initialise app
     var container = document.getElementById("WebGL-output");
@@ -1016,6 +1031,41 @@ $(document).ready(function() {
 
     zoomOut.on("touchend", function() {
         app.zoomOut(false);
+    });
+
+    var camRight = $('#camRight');
+    var camLeft = $('#camLeft');
+
+    camRight.on("mousedown", function() {
+        app.rotateCamera(true, RIGHT);
+    });
+
+    camRight.on("mouseup", function() {
+        app.rotateCamera(false);
+    });
+
+    camRight.on("touchstart", function() {
+        app.rotateCamera(true, RIGHT);
+    });
+
+    camRight.on("touchend", function() {
+        app.rotateCamera(false);
+    });
+
+    camLeft.on("mousedown", function() {
+        app.rotateCamera(true, LEFT);
+    });
+
+    camLeft.on("mouseup", function() {
+        app.rotateCamera(false);
+    });
+
+    camLeft.on("touchstart", function() {
+        app.rotateCamera(true, LEFT);
+    });
+
+    camLeft.on("touchend", function() {
+        app.rotateCamera(false);
     });
 
     app.run();

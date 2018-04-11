@@ -6,6 +6,8 @@ var START_X = -10;
 var START_Y = -60;
 var START_Z = -70;
 
+var ZOOM_SPEED = 0.1;
+
 //Init this app from base
 function FootyApp() {
     BaseApp.call(this);
@@ -26,10 +28,18 @@ FootyApp.prototype.init = function(container) {
     //Rendering groups
     this.attributeGroups = [];
     this.labelGroups = [];
+    //Controls
+    this.zoomingIn = false;
+    this.zoomingOut = false;
+    //Temp variables
+    this.tempVec = new THREE.Vector3();
+
+    this.zoomSpeed = ZOOM_SPEED;
 };
 
 FootyApp.prototype.update = function() {
     //Perform any updates
+    var delta = this.clock.getDelta();
     var clicked = this.mouseDown;
 
     /*
@@ -44,7 +54,7 @@ FootyApp.prototype.update = function() {
 
     //Check hover actions
     hideResults();
-    if(this.hoverObjects.length != 0) {
+    if(this.hoverObjects.length !== 0) {
         for(var i=0; i<this.hoverObjects.length; ++i) {
             var obj = this.hoverObjects[i].object;
             if(obj instanceof THREE.Mesh) {
@@ -59,6 +69,19 @@ FootyApp.prototype.update = function() {
             }
         }
     }
+
+    if(this.zoomingIn) {
+        this.tempVec.sub(this.camera.position, this.controls.getLookAt());
+        this.tempVec.multiplyScalar(this.zoomSpeed * delta);
+        this.root.position.add(this.tempVec);
+    }
+
+    if(this.zoomingOut) {
+        this.tempVec.sub(this.camera.position, this.controls.getLookAt());
+        this.tempVec.multiplyScalar(this.zoomSpeed * delta);
+        this.root.position.sub(this.tempVec);
+    }
+
     BaseApp.prototype.update.call(this);
 };
 
@@ -81,21 +104,31 @@ FootyApp.prototype.createScene = function() {
     //Init base createsScene
     BaseApp.prototype.createScene.call(this);
 
+    //Root node
+    var root = new THREE.Object3D();
+    this.scene.add(root);
+    this.root = root;
+
     //Create ground
     this.GROUND_DEPTH = 240;
     this.GROUND_WIDTH = 180;
-    addGroundPlane(this.scene, this.GROUND_WIDTH, this.GROUND_DEPTH);
+    addGroundPlane(root, this.GROUND_WIDTH, this.GROUND_DEPTH);
 
     //Set up label colours
-    this.defaultTextColour = [255, 255, 255], this.defaultBackColour = [0, 0, 0], this.defaultBorderColour = [125, 125, 125];
-    this.valueTextColour = [255, 184, 57], this.valueBackColour = [55, 55, 55], this.valueBorderColour = [0, 0, 0];
+    this.defaultTextColour = [255, 255, 255];
+    this.defaultBackColour = [0, 0, 0];
+    this.defaultBorderColour = [125, 125, 125];
+    this.valueTextColour = [255, 184, 57];
+    this.valueBackColour = [55, 55, 55];
+    this.valueBorderColour = [0, 0, 0];
+
     spriteManager.setTextColour(this.defaultTextColour);
     spriteManager.setBackgroundColour(this.defaultBackColour);
     spriteManager.setBorderColour(this.defaultBorderColour);
 
     //label attributes
-    this.mainLabelScale = new THREE.Vector3(10, 4, 1);
-    this.valueLabelScale = new THREE.Vector3(7, 4, 1);
+    this.mainLabelScale = new THREE.Vector3(15, 7.5, 1);
+    this.valueLabelScale = new THREE.Vector3(12.5, 6.25, 1);
 
     //Load json data
     var _this = this;
@@ -126,7 +159,7 @@ FootyApp.prototype.createScene = function() {
 FootyApp.prototype.clearScene = function() {
     //Clear all data
     for(var i=0; i<this.attributeGroups.length; ++i) {
-        this.scene.remove(this.attributeGroups[i]);
+        this.root.remove(this.attributeGroups[i]);
     }
 };
 
@@ -150,7 +183,7 @@ FootyApp.prototype.keydown = function(event) {
     }
 };
 
-function addGroundPlane(scene, width, height) {
+function addGroundPlane(root, width, height) {
     // create the ground plane
     var planeGeometry = new THREE.PlaneGeometry(width,height,1,1);
     var texture = THREE.ImageUtils.loadTexture("images/pitch.jpg");
@@ -165,7 +198,7 @@ function addGroundPlane(scene, width, height) {
     plane.position.y=-59.9;
     plane.position.z=0;
 
-    scene.add(plane);
+    root.add(plane);
 
     //Second plane
     /*
@@ -388,7 +421,7 @@ FootyApp.prototype.onShowGroup = function(attribute, value) {
         }
         //Hide values
         for(var i=0; i<this.labelGroups.length; ++i) {
-            if(this.labelGroups[i].name == attribute + 'LabelGroup') {
+            if(this.labelGroups[i].name === attribute + 'LabelGroup') {
                 this.labelGroups[i].traverse(function(obj) {
                     if(obj instanceof THREE.Sprite) {
                         obj.visible = value;
@@ -480,11 +513,12 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
     //Labels
     var labelPos = new THREE.Vector3(pos.x, START_Y, pos.z - 3);
     var label;
+    var group;
 
     switch (attribute) {
         case 'results':
             //Create containing group
-            var group = new THREE.Object3D();
+            group = new THREE.Object3D();
             group.name = attribute + 'Group';
 
             var winMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
@@ -494,7 +528,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             //Add label
             label = spriteManager.create('Results', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'resultsLabelBack';
-            this.scene.add(label);
+            this.root.add(label);
 
             //Add values
             var labelGroup = new THREE.Object3D();
@@ -509,7 +543,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var item = this.data[i];
                 switch(item["FTR"]) {
                     case 'H':
-                        if(item['HomeTeam'] == "Nott'm Forest") {
+                        if(item['HomeTeam'] === "Nott'm Forest") {
                             barMaterial = winMaterial;
                             barScale.set(1, 3, 1);
                         }
@@ -521,7 +555,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                         break;
 
                     case 'A':
-                        if(item['AwayTeam'] == "Nott'm Forest") {
+                        if(item['AwayTeam'] === "Nott'm Forest") {
                             barMaterial = winMaterial;
                             barScale.set(1, 3, 1);
                         }
@@ -533,7 +567,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
                 var bar = this.renderItem('box', 'results' + i, barMaterial, pos, barScale);
                 ++this.objectsRendered;
                 pos.y += barScale.y;
-                var value = spriteManager.create(barScale.y == 3 ? 'Win' : barScale.y == 2 ? 'Draw' : 'Lose', pos, this.valueLabelScale, 32, 1, true);
+                var value = spriteManager.create(barScale.y === 3 ? 'Win' : barScale.y === 2 ? 'Draw' : 'Lose', pos, this.valueLabelScale, 32, 1, true);
                 value.name = 'resultsLabel' + i;
                 labelGroup.add(value);
                 group.add(bar);
@@ -546,17 +580,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             spriteManager.setBorderColour(this.defaultBorderColour);
             label = spriteManager.create('Results', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'resultsLabelFront';
-            this.scene.add(label);
+            this.root.add(label);
             //Add objects to scene
-            this.scene.add(group);
+            this.root.add(group);
             this.attributeGroups.push(group);
-            this.scene.add(labelGroup);
+            this.root.add(labelGroup);
             this.labelGroups.push(labelGroup);
             break;
 
         case 'points':
             //Create containing group
-            var group = new THREE.Object3D();
+            group = new THREE.Object3D();
             group.name = attribute + 'Group';
 
             var pointsMaterial = new THREE.MeshPhongMaterial({color: 0x00ff00});
@@ -564,7 +598,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             //Add label
             label = spriteManager.create('Points', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'pointsLabelBack';
-            this.scene.add(label);
+            this.root.add(label);
 
             //Add values
             var labelGroup = new THREE.Object3D();
@@ -597,17 +631,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             spriteManager.setBorderColour(this.defaultBorderColour);
             label = spriteManager.create('Points', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'pointsLabelFront';
-            this.scene.add(label);
+            this.root.add(label);
             //Add objects to scene
-            this.scene.add(group);
+            this.root.add(group);
             this.attributeGroups.push(group);
-            this.scene.add(labelGroup);
+            this.root.add(labelGroup);
             this.labelGroups.push(labelGroup);
             break;
 
         case 'position':
             //Create containing group
-            var group = new THREE.Object3D();
+            group = new THREE.Object3D();
             group.name = attribute + 'Group';
 
             var posMaterial = new THREE.MeshPhongMaterial({color: 0x0000ff});
@@ -615,7 +649,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             //Add label
             label = spriteManager.create('Position', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'positionLabelBack';
-            this.scene.add(label);
+            this.root.add(label);
 
             //Add values
             var labelGroup = new THREE.Object3D();
@@ -650,17 +684,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             labelPos.z = pos.z;
             label = spriteManager.create('Position', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'positionLabelFront';
-            this.scene.add(label);
+            this.root.add(label);
             //Add objects to scene
-            this.scene.add(group);
+            this.root.add(group);
             this.attributeGroups.push(group);
-            this.scene.add(labelGroup);
+            this.root.add(labelGroup);
             this.labelGroups.push(labelGroup);
             break;
 
         case 'scored':
             //Create containing group
-            var group = new THREE.Object3D();
+            group = new THREE.Object3D();
             group.name = attribute + 'Group';
 
             var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFF196E});
@@ -668,7 +702,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             //Add label
             label = spriteManager.create('Scored', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'scoredLabelBack';
-            this.scene.add(label);
+            this.root.add(label);
 
             //Add values
             var labelGroup = new THREE.Object3D();
@@ -710,17 +744,17 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             spriteManager.setBorderColour(this.defaultBorderColour);
             label = spriteManager.create('Scored', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'scoredLabelFront';
-            this.scene.add(label);
+            this.root.add(label);
             //Add objects to scene
-            this.scene.add(group);
+            this.root.add(group);
             this.attributeGroups.push(group);
-            this.scene.add(labelGroup);
+            this.root.add(labelGroup);
             this.labelGroups.push(labelGroup);
             break;
 
         case 'conceeded':
             //Create containing group
-            var group = new THREE.Object3D();
+            group = new THREE.Object3D();
             group.name = attribute + 'Group';
 
             var goalMaterial = new THREE.MeshPhongMaterial({color: 0xFFF725});
@@ -728,7 +762,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             //Add label
             label = spriteManager.create('Conceeded', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'conceededLabelBack';
-            this.scene.add(label);
+            this.root.add(label);
 
             //Add values
             var labelGroup = new THREE.Object3D();
@@ -770,11 +804,11 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
             spriteManager.setBorderColour(this.defaultBorderColour);
             label = spriteManager.create('Conceeded', labelPos, this.mainLabelScale, 32, 1, true);
             label.name = 'conceededLabelFront';
-            this.scene.add(label);
+            this.root.add(label);
             //Add objects to scene
-            this.scene.add(group);
+            this.root.add(group);
             this.attributeGroups.push(group);
-            this.scene.add(labelGroup);
+            this.root.add(labelGroup);
             this.labelGroups.push(labelGroup);
             break;
 
@@ -923,6 +957,14 @@ FootyApp.prototype.onSelectFile = function(evt) {
         alert('sorry, file apis not supported');
 };
 
+FootyApp.prototype.zoomIn = function(zoom) {
+    this.zoomingIn = zoom;
+};
+
+FootyApp.prototype.zoomOut = function(zoom) {
+    this.zoomingOut = zoom;
+};
+
 $(document).ready(function() {
     //Initialise app
     var container = document.getElementById("WebGL-output");
@@ -938,6 +980,42 @@ $(document).ready(function() {
 
     $(document).keydown(function(event) {
         app.keydown(event);
+    });
+
+    //GUI controls
+    var zoomOut = $('#zoomOut');
+    var zoomIn = $('#zoomIn');
+
+    zoomIn.on("mousedown", function() {
+        app.zoomIn(true);
+    });
+
+    zoomIn.on("mouseup", function() {
+        app.zoomIn(false);
+    });
+
+    zoomIn.on("touchstart", function() {
+        app.zoomIn(true);
+    });
+
+    zoomIn.on("touchend", function() {
+        app.zoomIn(false);
+    });
+
+    zoomOut.on("mousedown", function() {
+        app.zoomOut(true);
+    });
+
+    zoomOut.on("mouseup", function() {
+        app.zoomOut(false);
+    });
+
+    zoomOut.on("touchstart", function() {
+        app.zoomOut(true);
+    });
+
+    zoomOut.on("touchend", function() {
+        app.zoomOut(false);
     });
 
     app.run();

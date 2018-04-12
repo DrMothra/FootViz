@@ -999,6 +999,12 @@ FootyApp.prototype.stopNotifications = function(elemList) {
 };
 
 $(document).ready(function() {
+    //Test for WebGL support
+
+
+    //Info modal
+    $('#mainModal').modal();
+
     //Initialise app
     var container = document.getElementById("WebGL-output");
     var app = new FootyApp();
@@ -1007,10 +1013,6 @@ $(document).ready(function() {
     //app.createGUI();
 
     //GUI callbacks
-    $("#chooseFile").on("change", function(evt) {
-        app.onSelectFile(evt);
-    });
-
     $(document).keydown(function(event) {
         app.keydown(event);
     });
@@ -1123,6 +1125,10 @@ $(document).ready(function() {
 
     var elemList = ["title", "zoomControls", "rotateControls", "instructions"];
     app.stopNotifications(elemList);
+
+    $('#instructions').on("click", function() {
+        $('#instructionModal').modal();
+    });
 
     app.run();
 });

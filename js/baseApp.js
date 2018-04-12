@@ -106,10 +106,12 @@ BaseApp.prototype.createControls = function() {
     this.controls.zoomSpeed = 1.0;
     this.controls.panSpeed = 1.0;
 
+    /*
     this.controls.noZoom = true;
     this.controls.noPan = true;
     this.controls.noRoll = true;
     this.controls.noRotate = true;
+    */
 
     this.controls.staticMoving = true;
     this.controls.dynamicDampingFactor = 0.3;

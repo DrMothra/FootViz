@@ -9,6 +9,8 @@ var START_Z = -70;
 var ZOOM_SPEED = 0.1;
 var RIGHT = 0;
 var LEFT = 1;
+var UP = 1;
+var DOWN = 0;
 
 //Init this app from base
 function FootyApp() {
@@ -41,6 +43,9 @@ FootyApp.prototype.init = function(container) {
     this.rotDirection = 1;
     this.cameraRotate = false;
     this.rotSpeed = Math.PI/20;
+
+    this.orbitDirection = 1;
+    this.cameraOrbit = false;
 };
 
 FootyApp.prototype.update = function() {
@@ -90,6 +95,10 @@ FootyApp.prototype.update = function() {
 
     if(this.cameraRotate) {
         this.root.rotation.y += (this.rotSpeed * this.rotDirection * delta);
+    }
+
+    if(this.cameraOrbit) {
+        this.root.rotation.z += (this.rotSpeed * this.orbitDirection * delta);
     }
 
     BaseApp.prototype.update.call(this);
@@ -976,6 +985,11 @@ FootyApp.prototype.rotateCamera = function(status, direction) {
     this.cameraRotate = status;
 };
 
+FootyApp.prototype.orbitCamera = function(status, direction) {
+    this.orbitDirection = direction === UP ? 1 : -1;
+    this.cameraOrbit = status;
+};
+
 $(document).ready(function() {
     //Initialise app
     var container = document.getElementById("WebGL-output");
@@ -1062,6 +1076,41 @@ $(document).ready(function() {
 
     camLeft.on("touchend", function() {
         app.rotateCamera(false);
+    });
+
+    var camUp = $('#camUp');
+    var camDown = $('#camDown');
+
+    camUp.on("mousedown", function() {
+        app.orbitCamera(true, UP);
+    });
+
+    camUp.on("mouseup", function() {
+        app.orbitCamera(false);
+    });
+
+    camUp.on("touchstart", function() {
+        app.orbitCamera(true, UP);
+    });
+
+    camUp.on("touchend", function() {
+        app.orbitCamera(false);
+    });
+
+    camDown.on("mousedown", function() {
+        app.orbitCamera(true, DOWN);
+    });
+
+    camDown.on("mouseup", function() {
+        app.orbitCamera(false);
+    });
+
+    camDown.on("touchstart", function() {
+        app.orbitCamera(true, DOWN);
+    });
+
+    camDown.on("touchend", function() {
+        app.orbitCamera(false);
     });
 
     app.run();

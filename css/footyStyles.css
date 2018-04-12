@@ -123,3 +123,33 @@ body {
         width: 7.5%;
     }
 }
+
+@media (min-width: 576px) and (orientation: portrait) {
+    #title {
+        font-size: 1.5rem;
+    }
+    #rotateControls,
+    #zoomControls {
+        width: 15%;
+    }
+    #rotateControls p,
+    #zoomControls p {
+        font-size: 1.3rem;
+    }
+    #zoomControls {
+        bottom: 20%;
+    }
+    #instructions {
+        width: 10%;
+    }
+}
+
+@media (min-width: 768px) {
+    #title {
+        font-size: 1.5rem;
+    }
+    #rotateControls,
+    #zoomControls {
+        width: 10%;
+    }
+}

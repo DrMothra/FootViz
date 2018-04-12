@@ -6,6 +6,8 @@ var START_X = -10;
 var START_Y = -60;
 var START_Z = -70;
 
+var MIN_GUI_SIZE = 1024;
+
 var ZOOM_SPEED = 0.1;
 var RIGHT = 0;
 var LEFT = 1;
@@ -24,6 +26,7 @@ FootyApp.prototype.init = function(container) {
     this.data = null;
     this.updateRequired = false;
     this.guiControls = null;
+    this.showGUI = false;
     this.dataFile = null;
     this.filename = 'forest.json';
     this.objectsRendered = 0;
@@ -154,25 +157,12 @@ FootyApp.prototype.createScene = function() {
     var dataLoad = new dataLoader();
     var dataParser = function(data) {
         _this.data = data;
-        //_this.generateGUIControls();
+        if(_this.showGUI) _this.generateGUIControls();
         _this.generateData();
         _this.updateRequired = true;
     };
 
     dataLoad.load("data/forest.json", dataParser);
-
-    //Load object
-    var manager = new THREE.LoadingManager();
-    var loader = new THREE.OBJLoader( manager );
-    /*
-    loader.load( 'models/goalSimp.obj', function ( object ) {
-
-        _this.loadedModel = object;
-        object.position.set(100, -60, 20);
-        _this.scene.add(object);
-
-    }, null, null );
-    */
 };
 
 FootyApp.prototype.clearScene = function() {
@@ -204,7 +194,7 @@ FootyApp.prototype.keydown = function(event) {
 
 function addGroundPlane(root, width, height) {
     // create the ground plane
-    var planeGeometry = new THREE.PlaneGeometry(width,height,1,1);
+    var planeGeometry = new THREE.PlaneBufferGeometry(width,height,1,1);
     var texture = THREE.ImageUtils.loadTexture("images/pitch.jpg");
     var planeMaterial = new THREE.MeshLambertMaterial({map: texture, transparent: false, opacity: 0.5});
     var plane = new THREE.Mesh(planeGeometry,planeMaterial);
@@ -238,6 +228,11 @@ function addGroundPlane(root, width, height) {
 
 FootyApp.prototype.createGUI = function() {
     //Create GUI - use dat.GUI for now
+    if(window.innerWidth >= MIN_GUI_SIZE ||  window.innerHeight >= MIN_GUI_SIZE) {
+        this.showGUI = true;
+    }
+    if(!this.showGUI) return;
+
     this.guiControls = new function() {
         this.ShowLabels = false;
 
@@ -1010,7 +1005,7 @@ $(document).ready(function() {
     var app = new FootyApp();
     app.init(container);
     app.createScene();
-    //app.createGUI();
+    app.createGUI();
 
     //GUI callbacks
     $(document).keydown(function(event) {

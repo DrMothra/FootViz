@@ -146,8 +146,8 @@ FootyApp.prototype.createScene = function() {
     spriteManager.setBorderColour(this.defaultBorderColour);
 
     //label attributes
-    this.mainLabelScale = new THREE.Vector3(15, 7.5, 1);
-    this.valueLabelScale = new THREE.Vector3(12.5, 6.25, 1);
+    this.mainLabelScale = new THREE.Vector3(20, 10, 1);
+    this.valueLabelScale = new THREE.Vector3(15, 7.5, 1);
 
     //Load json data
     var _this = this;
@@ -526,7 +526,7 @@ FootyApp.prototype.renderAttribute = function(attribute, row) {
     var pos = new THREE.Vector3(START_X + row, START_Y, START_Z);
     var incZ = 3;
     //Labels
-    var labelPos = new THREE.Vector3(pos.x, START_Y, pos.z - 3);
+    var labelPos = new THREE.Vector3(pos.x, START_Y - 1.5, pos.z - 3);
     var label;
     var group;
 

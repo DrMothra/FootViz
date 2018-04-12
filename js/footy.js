@@ -990,6 +990,14 @@ FootyApp.prototype.orbitCamera = function(status, direction) {
     this.cameraOrbit = status;
 };
 
+FootyApp.prototype.stopNotifications = function(elemList) {
+    for(var i=0, numElems=elemList.length; i<numElems; ++i) {
+        $('#' + elemList[i]).contextmenu( function() {
+            return false;
+        });
+    }
+};
+
 $(document).ready(function() {
     //Initialise app
     var container = document.getElementById("WebGL-output");
@@ -1112,6 +1120,9 @@ $(document).ready(function() {
     camDown.on("touchend", function() {
         app.orbitCamera(false);
     });
+
+    var elemList = ["title", "zoomControls", "rotateControls", "instructions"];
+    app.stopNotifications(elemList);
 
     app.run();
 });

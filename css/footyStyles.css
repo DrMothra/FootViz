@@ -15,8 +15,8 @@ body {
 #title {
     position: absolute;
     top: 1%;
-    width: 75%;
-    left: 12.5%;
+    width: 100%;
+    left: 0%;
     color: #7fa5ff;
     font-size: 1rem;
 }
@@ -97,4 +97,29 @@ body {
 }
 #rotateControls img {
     width: 90%;
+}
+#instructions {
+    bottom: 1%;
+    left: 1%;
+    width: 12.5%;
+    -webkit-touch-callout: none;
+}
+#instructions img {
+    width: 100%;
+}
+/* Media queries */
+@media (min-width: 576px) {
+    #title img {
+        width: 5%;
+    }
+    #rotateControls,
+    #zoomControls {
+        width: 10%;
+    }
+    #zoomControls {
+        bottom: 35%;
+    }
+    #instructions {
+        width: 7.5%;
+    }
 }

@@ -13,6 +13,8 @@ function BaseApp() {
     this.rayCaster = new THREE.Raycaster();
     this.root = null;
     this.mouse = new THREE.Vector2();
+    this.mouse.x = -1000;
+    this.mouse.y = -1000;
     this.mouseDown = false;
     this.mouseRaw = new THREE.Vector2();
     this.pickedObjects = [];

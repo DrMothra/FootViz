@@ -26,7 +26,6 @@ FootyApp.prototype.init = function(container) {
     this.data = null;
     this.updateRequired = false;
     this.guiControls = null;
-    this.showGUI = false;
     this.dataFile = null;
     this.filename = 'forest.json';
     this.objectsRendered = 0;
@@ -54,7 +53,6 @@ FootyApp.prototype.init = function(container) {
 FootyApp.prototype.update = function() {
     //Perform any updates
     var delta = this.clock.getDelta();
-    var clicked = this.mouseDown;
 
     /*
     if(this.updateRequired) {
@@ -110,7 +108,7 @@ FootyApp.prototype.update = function() {
 function hideResults() {
     //Hide results panel
     var element = $('#resultsPanel');
-    element.hide();
+    element.addClass("d-none");
 }
 
 function showResults(left, top, text) {
@@ -119,7 +117,7 @@ function showResults(left, top, text) {
     element.html(text);
     element.css('top', top-15);
     element.css('left', left+15);
-    element.show();
+    element.removeClass("d-none");
 }
 
 FootyApp.prototype.createScene = function() {
@@ -157,7 +155,7 @@ FootyApp.prototype.createScene = function() {
     var dataLoad = new dataLoader();
     var dataParser = function(data) {
         _this.data = data;
-        if(_this.showGUI) _this.generateGUIControls();
+        _this.generateGUIControls();
         _this.generateData();
         _this.updateRequired = true;
     };
@@ -228,11 +226,6 @@ function addGroundPlane(root, width, height) {
 
 FootyApp.prototype.createGUI = function() {
     //Create GUI - use dat.GUI for now
-    if(window.innerWidth >= MIN_GUI_SIZE ||  window.innerHeight >= MIN_GUI_SIZE) {
-        this.showGUI = true;
-    }
-    if(!this.showGUI) return;
-
     this.guiControls = new function() {
         this.ShowLabels = false;
 
@@ -263,6 +256,7 @@ FootyApp.prototype.createGUI = function() {
 
     //Create GUI
     var gui = new dat.GUI();
+    gui.close();
     var _this = this;
     //Create two folders - Appearance and Data
     this.guiAppear = gui.addFolder("Appearance");

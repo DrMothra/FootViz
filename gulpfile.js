@@ -67,8 +67,8 @@ gulp.task("copy", function() {
 });
 
 gulp.task("concatJS", function() {
-    gulp.src(["build/js/three71.min.js", "build/js/jquery-1.11.2.min.js", "build/js/bootstrap.min.js", "build/js/TrackballControls.min.js", "build/js/dat.gui.min.js", "build/js/dataloader.min.js",
-        "build/js/OBJLoader.js", "build/js/baseApp.min.js", "build/js/spriteManager.min.js", "build/js/footy.min.js"])
+    gulp.src(["build/js/three71.min.js", "build/js/jquery-3.3.1.slim.min.js", "build/js/bootstrap.min.js", "build/js/TrackballControls.min.js", "build/js/dat.gui.min.js", "build/js/dataloader.min.js",
+        "build/js/Detector.min.js", "build/js/baseApp.min.js", "build/js/spriteManager.min.js", "build/js/footy.min.js"])
         .pipe(concat("build.min.js"))
         .pipe(gulp.dest("dist/js/"));
 });

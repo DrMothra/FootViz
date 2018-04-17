@@ -12,6 +12,19 @@ body {
     color: #7fa5ff;
     text-align: center;
 }
+#notSupported {
+    top: 40%;
+    left: 10%;
+    width: 80%;
+    background-color: #3e3e3e;
+    color: white;
+    font-size: 2.5vw;
+    border-radius: 15px;
+    padding: 1%;
+}
+#notSupported p img {
+    width: 25%;
+}
 #title {
     position: absolute;
     top: 1%;
@@ -125,6 +138,12 @@ body {
     #instructions {
         width: 7.5%;
     }
+    #notSupported {
+        top: 25%;
+    }
+    #notSupported p img {
+        width: 20%;
+    }
 }
 
 @media (min-width: 576px) and (orientation: portrait) {
@@ -154,6 +173,9 @@ body {
     #rotateControls,
     #zoomControls {
         width: 10%;
+    }
+    #notSupported p img {
+        width: 15%;
     }
 }
 

@@ -941,7 +941,7 @@ FootyApp.prototype.onSelectFile = function(evt) {
     if (window.File && window.FileReader && window.FileList && window.Blob) {
         //File APIs are supported.
         var files = evt.target.files; // FileList object
-        if (files.length==0) {
+        if (files.length===0) {
             console.log('no file specified');
             this.filename = "";
             return;
@@ -989,7 +989,10 @@ FootyApp.prototype.stopNotifications = function(elemList) {
 
 $(document).ready(function() {
     //Test for WebGL support
-
+    if(!Detector.webgl) {
+        $('#notSupported').removeClass("d-none");
+        return;
+    }
 
     //Info modal
     $('#mainModal').modal();
